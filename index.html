@@ -1,34 +1,4 @@
-# GeoJSON Only Nanded GIS Portal (No GPKG Support)
 
-Save this as `index.html`
-
-IMPORTANT:
-
-* This script DOES NOT load GPKG.
-* Only GeoJSON supported.
-* Your files MUST be:
-
-  * Polygon.geojson
-  * Line.geojson
-  * Point.geojson
-
-Folder Structure:
-
-```text
-repo/
-│
-├── index.html
-│
-├── Ardhapur/
-│   ├── Village1/
-│   │   ├── Polygon.geojson
-│   │   ├── Line.geojson
-│   │   └── Point.geojson
-```
-
----
-
-```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -525,33 +495,3 @@ map.fitBounds(layer.getBounds());
 
 </body>
 </html>
-```
-
----
-
-# MOST IMPORTANT
-
-If still showing:
-
-```text
-GPKG load failed
-```
-
-then:
-
-* Browser cache still loading OLD script
-* Press:
-
-```text
-CTRL + SHIFT + R
-```
-
-OR
-
-open:
-
-```text
-F12 → Network → Disable Cache
-```
-
-because THIS script contains ZERO GPKG code.
