@@ -973,30 +973,86 @@ L.geoJSON(data,{
 
 renderer:L.canvas(),
 
+/* ============================================
+   POINT SYMBOL
+============================================ */
+
 pointToLayer:
 (feature,latlng)=>{
 
-return L.circleMarker(
-latlng,
-{
-radius:2,
-color:"#ffff00",
+const props =
+feature.properties || {};
+
+/* OPTIONAL SOURCE FIELD */
+
+const source =
+(
+props.sourcel ||
+props.SourceL ||
+props.SOURCEL ||
+""
+)
+.toString()
+.trim();
+
+/* DEFAULT STYLE */
+
+let style = {
+
+radius:4,
+color:"black",
+weight:1,
 fillColor:"#ffff00",
 fillOpacity:1
+
+};
+
+/* OPTIONAL CUSTOM SYMBOLS */
+
+if(source.includes("Tree")){
+
+style.fillColor = "green";
+
 }
+
+else if(source.includes("Temple")){
+
+style.fillColor = "red";
+
+}
+
+else if(source.includes("Well")){
+
+style.fillColor = "blue";
+
+}
+
+return L.circleMarker(
+latlng,
+style
 );
 
 },
+
+/* ============================================
+   LABELS + POPUP
+============================================ */
 
 onEachFeature:(feature,layer)=>{
 
 const props =
 feature.properties || {};
 
+/* LABEL FIELD */
+
 const label =
 props.Text ||
 props.text ||
-props.name;
+props.name ||
+props.NAME ||
+props.label;
+
+/* LABEL */
 
 if(label){
 
@@ -1005,15 +1061,48 @@ String(label),
 {
 permanent:true,
 direction:"top",
+offset:[0,-8],   // MOVE LABEL ABOVE POINT
 className:"cadastral-label"
 }
 );
 
 }
 
+/* POPUP */
+
+let html =
+"<table border='1' style='border-collapse:collapse;font-size:12px;'>";
+
+for(let key in props){
+
+html +=
+`<tr>
+<td><b>${key}</b></td>
+<td>${props[key]}</td>
+</tr>`;
+
+}
+
+html += "</table>";
+
+layer.bindPopup(html);
+
 }
 
 }).addTo(map);
+
+setStatus(
+"✅ Point Layer Loaded"
+);
+
+})
+.catch(err=>{
+
+console.error(err);
+
+setStatus(
+"❌ Point Layer Failed"
+);
 
 });
 
