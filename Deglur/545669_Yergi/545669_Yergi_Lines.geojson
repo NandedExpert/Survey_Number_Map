@@ -1,0 +1,15 @@
+{
+"type": "FeatureCollection",
+"name": "545669_Yergi_Lines",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "sourcel": "Line_Divided_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.585985873542143, 18.448893632533821 ], [ 77.586219268499789, 18.448972843119485 ], [ 77.587490090855397, 18.449544702039372 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Road_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.583628812180251, 18.449440732570427 ], [ 77.583860721977089, 18.449217597611774 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Road_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.564584787732926, 18.450499151695706 ], [ 77.564617432118268, 18.45072601839183 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Road_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.564020640165268, 18.459733210555523 ], [ 77.563861925412454, 18.459762735563327 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Road_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.564589470663208, 18.4514283642017 ], [ 77.56474481206952, 18.45145633983465 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Divided_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.552152038383525, 18.441053225134659 ], [ 77.55136579050847, 18.440890664501438 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Divided_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.564138436747314, 18.43710079279105 ], [ 77.564630869878599, 18.435842119218211 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Divided_line", "Taluka": "Deglur", "LGD_Code": "545669", "MAP_ID": "485411054566909000001", "Vill_Name": "Yergi", "File_name": "545669_Yergi" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.583670954451279, 18.444222216998053 ], [ 77.584760808006891, 18.443094753365433 ] ] ] } }
+]
+}
