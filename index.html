@@ -973,63 +973,39 @@ L.geoJSON(data,{
 
 renderer:L.canvas(),
 
+/* =================================================
+   POINT
+================================================= */
+
+if(pointFile){
+
+const pointURL =
+baseURL +
+`${taluka}/${village}/${pointFile}`;
+
+fetch(pointURL)
+.then(r=>r.json())
+.then(data=>{
+
+pointLayer =
+L.geoJSON(data,{
+
+renderer:L.canvas(),
+
 /* ============================================
-   POINT SYMBOL
+   HIDE POINT SYMBOL
 ============================================ */
 
 pointToLayer:
 (feature,latlng)=>{
 
-const props =
-feature.properties || {};
-
-/* OPTIONAL SOURCE FIELD */
-
-const source =
-(
-props.sourcel ||
-props.SourceL ||
-props.SOURCEL ||
-""
-)
-.toString()
-.trim();
-
-/* DEFAULT STYLE */
-
-let style = {
-
-radius:4,
-color:"black",
-weight:1,
-fillColor:"#ffff00",
-fillOpacity:1
-
-};
-
-/* OPTIONAL CUSTOM SYMBOLS */
-
-if(source.includes("Tree")){
-
-style.fillColor = "green";
-
-}
-
-else if(source.includes("Temple")){
-
-style.fillColor = "red";
-
-}
-
-else if(source.includes("Well")){
-
-style.fillColor = "blue";
-
-}
-
 return L.circleMarker(
 latlng,
-style
+{
+radius:0,
+opacity:0,
+fillOpacity:0
+}
 );
 
 },
@@ -1060,11 +1036,11 @@ layer.bindTooltip(
 String(label),
 {
 permanent:true,
-direction:"top",
-offset:[0,-8],   // MOVE LABEL ABOVE POINT
+direction:"center",
+offset:[0,0],
 className:"cadastral-label"
 }
-);
+).openTooltip();
 
 }
 
