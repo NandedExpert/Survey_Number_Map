@@ -267,7 +267,7 @@ document.getElementById("villageSelect").addEventListener("change", async functi
                     const props = feature.properties || {};
                     const source = (props.sourcel || props.SourceL || props.SOURCEL || "").toString().trim();
                     if(source === "Line_Nala_line" || source === "Line_River_line" || source === "Sym_Kalwa_line") return {color:"blue", weight:2, opacity:1};
-                    else if(source === "Line_Vahivat_line") return {color:"green", weight:2, dashArray:"5,5", opacity:1};
+                    else if(source === "Line_Vahivat_line") return {color:"cyan", weight:2, dashArray:"5,5", opacity:1};
                     else if(source === "Line_Road_line") return {color:"black", weight:2, opacity:1};
                     else if(source === "Line_Railway_line") return {color:"black", weight:2, dashArray:"12,6", opacity:1};
                     else if(source === "Line_Contour_line" || source === "Line_Road_Durusti_line") return {color:"red", weight:2, opacity:1};
