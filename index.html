@@ -396,7 +396,7 @@ let highlightLayer = null;
 let activeUser = null;
 
 /* =====================================================
-   GITHUB PATHS
+   GITHUB
 ===================================================== */
 
 const githubUser =
@@ -454,7 +454,7 @@ document.getElementById("loginError")
 }
 
 /* =====================================================
-   LOAD TALUKAS FROM REPO
+   LOAD TALUKAS FAST
 ===================================================== */
 
 async function loadTalukas(){
@@ -465,56 +465,40 @@ document.getElementById("talukaSelect");
 talukaSelect.innerHTML =
 `<option>Loading Talukas...</option>`;
 
-talukaSelect.disabled = true;
-
 try{
 
-setStatus("Scanning repository...");
+setStatus("Fetching talukas...");
 
 const api =
 `https://api.github.com/repos/${githubUser}/${repoName}/contents`;
 
 const res = await fetch(api);
 
-if(!res.ok)
-throw new Error("Repository scan failed");
-
 const data = await res.json();
+
+const talukas =
+data.filter(
+item => item.type === "dir"
+);
 
 talukaSelect.innerHTML =
 `<option value="">-- Select Taluka --</option>`;
 
-let total = 0;
+talukas.sort((a,b)=>
+a.name.localeCompare(b.name)
+);
 
-for(const item of data){
+talukas.forEach(item=>{
 
-if(item.type !== "dir")
-continue;
-
-const talukaName = item.name;
+const talukaName =
+item.name;
 
 if(
 activeUser.access !== "ALL" &&
 !activeUser.access.includes(talukaName)
 ){
-continue;
+return;
 }
-
-/* CHECK VILLAGE EXISTS */
-
-const talukaRes =
-await fetch(item.url);
-
-const talukaData =
-await talukaRes.json();
-
-const hasVillage =
-talukaData.some(
-f => f.type === "dir"
-);
-
-if(!hasVillage)
-continue;
 
 const option =
 document.createElement("option");
@@ -524,13 +508,12 @@ option.textContent = talukaName;
 
 talukaSelect.appendChild(option);
 
-total++;
-}
+});
 
 talukaSelect.disabled = false;
 
 setStatus(
-`✅ ${total} talukas loaded`
+`✅ ${talukas.length} talukas loaded`
 );
 
 }catch(err){
@@ -544,7 +527,7 @@ setStatus(
 }
 
 /* =====================================================
-   LOAD VILLAGES
+   LOAD VILLAGES FAST
 ===================================================== */
 
 document.getElementById("talukaSelect")
@@ -558,69 +541,49 @@ document.getElementById("villageSelect");
 villageSelect.innerHTML =
 `<option>Loading villages...</option>`;
 
-villageSelect.disabled = true;
-
 if(!taluka)
 return;
 
 try{
 
-setStatus("Scanning villages...");
+setStatus("Fetching villages...");
 
 const api =
 `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`;
 
 const res = await fetch(api);
 
-if(!res.ok)
-throw new Error("Taluka not found");
-
 const data = await res.json();
+
+const villages =
+data.filter(
+item => item.type === "dir"
+);
 
 villageSelect.innerHTML =
 `<option value="">-- Select Village --</option>`;
 
-let total = 0;
-
-for(const item of data){
-
-if(item.type !== "dir")
-continue;
-
-const villageName =
-item.name;
-
-/* CHECK POLYGON EXISTS */
-
-const villageRes =
-await fetch(item.url);
-
-const villageData =
-await villageRes.json();
-
-const hasPolygon =
-villageData.some(
-f => f.name === "Polygon.geojson"
+villages.sort((a,b)=>
+a.name.localeCompare(b.name)
 );
 
-if(!hasPolygon)
-continue;
+villages.forEach(village=>{
 
 const option =
 document.createElement("option");
 
-option.value = villageName;
-option.textContent = villageName;
+option.value = village.name;
+
+option.textContent = village.name;
 
 villageSelect.appendChild(option);
 
-total++;
-}
+});
 
 villageSelect.disabled = false;
 
 setStatus(
-`✅ ${total} villages loaded`
+`✅ ${villages.length} villages loaded`
 );
 
 }catch(err){
@@ -628,13 +591,13 @@ setStatus(
 console.error(err);
 
 setStatus(
-"❌ Failed to load villages"
+"❌ Failed to fetch villages"
 );
 }
 });
 
 /* =====================================================
-   LOAD VILLAGE DATA
+   LOAD GEOJSON
 ===================================================== */
 
 document.getElementById("villageSelect")
@@ -653,7 +616,7 @@ return;
 try{
 
 setStatus(
-"Loading GeoJSON layers..."
+"Loading village layers..."
 );
 
 /* CLEAR OLD */
@@ -726,13 +689,21 @@ className:
 );
 }
 
-layer.bindPopup(
-`<pre>${JSON.stringify(
-props,
-null,
-2
-)}</pre>`
-);
+let html =
+"<table border='1' style='border-collapse:collapse;'>";
+
+for(let key in props){
+
+html +=
+`<tr>
+<td><b>${key}</b></td>
+<td>${props[key]}</td>
+</tr>`;
+}
+
+html += "</table>";
+
+layer.bindPopup(html);
 }
 
 }).addTo(map);
@@ -746,8 +717,16 @@ baseURL +
 `${taluka}/${village}/Line.geojson`;
 
 fetch(lineURL)
-.then(r=>r.json())
+.then(r=>{
+
+if(!r.ok) return null;
+
+return r.json();
+
+})
 .then(data=>{
+
+if(!data) return;
 
 lineLayer =
 L.geoJSON(data,{
@@ -770,8 +749,16 @@ baseURL +
 `${taluka}/${village}/Point.geojson`;
 
 fetch(pointURL)
-.then(r=>r.json())
+.then(r=>{
+
+if(!r.ok) return null;
+
+return r.json();
+
+})
 .then(data=>{
+
+if(!data) return;
 
 pointLayer =
 L.geoJSON(data,{
@@ -794,7 +781,7 @@ fillOpacity:1
 
 });
 
-/* ZOOM */
+/* FIT */
 
 map.fitBounds(
 polygonLayer.getBounds(),
@@ -820,13 +807,13 @@ setStatus(
 console.error(err);
 
 setStatus(
-"❌ GeoJSON load failed"
+"❌ GeoJSON loading failed"
 );
 }
 });
 
 /* =====================================================
-   SEARCH SURVEY
+   SEARCH
 ===================================================== */
 
 document.getElementById("searchBtn")
@@ -842,6 +829,7 @@ function(e){
 
 if(e.key === "Enter")
 searchSurvey();
+
 }
 );
 
@@ -909,17 +897,17 @@ layer.openPopup();
 if(found){
 
 setStatus(
-`🎯 Survey No ${val} found`
+`🎯 Survey ${val} found`
 );
 
 }else{
 
 setStatus(
-`❌ Survey No not found`
+`❌ Survey not found`
 );
 
 alert(
-"Survey Number not found"
+"Survey number not found"
 );
 }
 }
