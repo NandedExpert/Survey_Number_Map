@@ -1,270 +1,156 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+# GeoJSON Only Nanded GIS Portal (No GPKG Support)
 
+Save this as `index.html`
+
+IMPORTANT:
+
+* This script DOES NOT load GPKG.
+* Only GeoJSON supported.
+* Your files MUST be:
+
+  * Polygon.geojson
+  * Line.geojson
+  * Point.geojson
+
+Folder Structure:
+
+```text
+repo/
+│
+├── index.html
+│
+├── Ardhapur/
+│   ├── Village1/
+│   │   ├── Polygon.geojson
+│   │   ├── Line.geojson
+│   │   └── Point.geojson
+```
+
+---
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Nanded GIS Portal</title>
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Segoe UI, Arial;
-}
-
 body{
+    margin:0;
     display:flex;
     height:100vh;
-    overflow:hidden;
+    font-family:Arial;
 }
 
-/* =========================================================
-   LOGIN
-========================================================= */
+#sidebar{
+    width:320px;
+    background:#0f172a;
+    color:white;
+    padding:15px;
+    overflow:auto;
+}
 
-#loginOverlay{
+#map{
+    flex:1;
+}
+
+select,input,button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+}
+
+button{
+    background:#0284c7;
+    color:white;
+    border:none;
+}
+
+#login{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.85);
+    background:rgba(0,0,0,0.8);
     display:flex;
     justify-content:center;
     align-items:center;
     z-index:9999;
 }
 
-.loginCard{
-    width:340px;
+#loginBox{
     background:white;
+    padding:20px;
     border-radius:10px;
-    padding:25px;
-    box-shadow:0 0 20px rgba(0,0,0,0.3);
+    width:300px;
 }
-
-.loginCard h2{
-    text-align:center;
-    margin-bottom:20px;
-    color:#0f172a;
-}
-
-.loginCard input{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    border:1px solid #ccc;
-    border-radius:6px;
-}
-
-.loginCard button{
-    width:100%;
-    margin-top:15px;
-    padding:10px;
-    border:none;
-    background:#0284c7;
-    color:white;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-#loginError{
-    color:red;
-    margin-top:10px;
-    font-size:13px;
-}
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
-
-#sidebar{
-    width:340px;
-    background:#0f172a;
-    color:white;
-    padding:18px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-    overflow:auto;
-}
-
-#sidebar h2{
-    text-align:center;
-    color:#38bdf8;
-}
-
-label{
-    font-size:13px;
-    color:#cbd5e1;
-    font-weight:600;
-}
-
-select,input,button{
-    width:100%;
-    padding:10px;
-    border-radius:6px;
-    border:none;
-    outline:none;
-}
-
-select,input{
-    background:#1e293b;
-    color:white;
-    border:1px solid #334155;
-}
-
-button{
-    background:#0284c7;
-    color:white;
-    cursor:pointer;
-    font-weight:600;
-}
-
-button:hover{
-    background:#0369a1;
-}
-
-.status{
-    font-size:12px;
-    color:#38bdf8;
-    line-height:1.5;
-    padding:10px;
-    background:#1e293b;
-    border-radius:6px;
-}
-
-/* =========================================================
-   MAP
-========================================================= */
-
-#map{
-    flex:1;
-}
-
-/* =========================================================
-   LABELS
-========================================================= */
 
 .cadastral-label{
     background:transparent !important;
     border:none !important;
     box-shadow:none !important;
-    color:#ffff00 !important;
+    color:yellow !important;
     font-weight:bold !important;
-    font-size:12px !important;
-
     text-shadow:
-        -1px -1px 0 #000,
-         1px -1px 0 #000,
-        -1px  1px 0 #000,
-         1px  1px 0 #000;
+    -1px -1px 0 black,
+    1px -1px 0 black,
+    -1px 1px 0 black,
+    1px 1px 0 black;
 }
-
-/* =========================================================
-   POPUP
-========================================================= */
-
-.popup-table{
-    border-collapse:collapse;
-    width:100%;
-}
-
-.popup-table td{
-    border:1px solid #ddd;
-    padding:4px 6px;
-    font-size:12px;
-}
-
-.popup-table tr:nth-child(even){
-    background:#f5f5f5;
-}
-
 </style>
 </head>
-
 <body>
 
-<!-- =====================================================
-     LOGIN
-====================================================== -->
+<div id="login">
+<div id="loginBox">
+<h3>Nanded GIS Portal</h3>
 
-<div id="loginOverlay">
+<input type="text"
+id="username"
+placeholder="Username">
 
-    <div class="loginCard">
+<input type="password"
+id="password"
+placeholder="Password">
 
-        <h2>Nanded GIS Portal</h2>
+<button onclick="login()">
+Login
+</button>
 
-        <input
-        type="text"
-        id="username"
-        placeholder="Username">
-
-        <input
-        type="password"
-        id="password"
-        placeholder="Password">
-
-        <button onclick="login()">
-            Login
-        </button>
-
-        <div id="loginError"></div>
-
-    </div>
+<div id="error"
+style="color:red;margin-top:10px;"></div>
 
 </div>
-
-<!-- =====================================================
-     SIDEBAR
-====================================================== -->
+</div>
 
 <div id="sidebar">
 
-    <h2>Bhumi Abhilekh</h2>
+<h2>Nanded GIS Portal</h2>
 
-    <div>
-        <label>Select Taluka</label>
+<select id="talukaSelect" disabled>
+<option value="">Select Taluka</option>
+</select>
 
-        <select id="talukaSelect" disabled>
-            <option value="">-- Select Taluka --</option>
-        </select>
-    </div>
+<select id="villageSelect" disabled>
+<option value="">Select Village</option>
+</select>
 
-    <div>
-        <label>Select Village</label>
+<input type="text"
+id="searchBox"
+placeholder="Survey Number"
+disabled>
 
-        <select id="villageSelect" disabled>
-            <option value="">-- Select Village --</option>
-        </select>
-    </div>
+<button id="searchBtn" disabled>
+Search Survey
+</button>
 
-    <div>
-        <label>Search Survey/Gat Number</label>
-
-        <input
-        type="text"
-        id="searchBox"
-        placeholder="Enter Survey Number"
-        disabled>
-    </div>
-
-    <button id="searchBtn" disabled>
-        Search Survey
-    </button>
-
-    <div class="status" id="statusBox">
-        Ready...
-    </div>
+<div id="status"></div>
 
 </div>
-
-<!-- =====================================================
-     MAP
-====================================================== -->
 
 <div id="map"></div>
 
@@ -272,599 +158,400 @@ button:hover{
 
 <script>
 
-/* =========================================================
+/* =====================================================
    USERS
-========================================================= */
+===================================================== */
 
 const users = {
 
+"Admin":{
+password:"Admin@321",
+access:"ALL"
+},
+
 "Ardhapur_taluka":{
-    password:"Ardhapur@123",
-    access:["Ardhapur"]
+password:"Ardhapur@123",
+access:["Ardhapur"]
 },
 
 "Bhokar_taluka":{
-    password:"Bhokar@123",
-    access:["Bhokar"]
+password:"Bhokar@123",
+access:["Bhokar"]
 },
 
 "Biloli_taluka":{
-    password:"Biloli@123",
-    access:["Biloli"]
+password:"Biloli@123",
+access:["Biloli"]
 },
 
 "Deglur_taluka":{
-    password:"Deglur@123",
-    access:["Deglur"]
+password:"Deglur@123",
+access:["Deglur"]
 },
 
 "Dharmabad_taluka":{
-    password:"Dharmabad@123",
-    access:["Dharmabad"]
-},
-
-"Hadgaon_taluka":{
-    password:"Hadgaon@123",
-    access:["Hadgaon"]
-},
-
-"Himayatnagar_taluka":{
-    password:"Himayatnagar@123",
-    access:["Himayatnagar"]
-},
-
-"Kandhar_taluka":{
-    password:"Kandhar@123",
-    access:["Kandhar"]
-},
-
-"Kinwat_taluka":{
-    password:"Kinwat@123",
-    access:["Kinwat"]
-},
-
-"Loha_taluka":{
-    password:"Loha@123",
-    access:["Loha"]
-},
-
-"Mahur_taluka":{
-    password:"Mahur@123",
-    access:["Mahur"]
-},
-
-"Mudkhed_taluka":{
-    password:"Mudkhed@123",
-    access:["Mudkhed"]
-},
-
-"Mukhed_taluka":{
-    password:"Mukhed@123",
-    access:["Mukhed"]
-},
-
-"Naigaon_taluka":{
-    password:"Naigaon@123",
-    access:["Naigaon"]
-},
-
-"Nanded_taluka":{
-    password:"Nanded@123",
-    access:["Nanded"]
-},
-
-"Umri_taluka":{
-    password:"Umri@123",
-    access:["Umri"]
-},
-
-"Nanded_district":{
-    password:"Nanded@123",
-    access:"ALL"
-},
-
-"Admin":{
-    password:"Admin@321",
-    access:"ALL"
+password:"Dharmabad@123",
+access:["Dharmabad"]
 }
 
 };
 
-/* =========================================================
+/* =====================================================
    MAP
-========================================================= */
+===================================================== */
 
-const map = L.map('map')
-.setView([19.1628,77.3183],10);
+const map = L.map('map').setView([19.16,77.31],10);
 
-const googleHybrid = L.tileLayer(
+L.tileLayer(
 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
 {
-    maxZoom:22
-}).addTo(map);
+maxZoom:22
+}
+).addTo(map);
 
-const googleRoad = L.tileLayer(
-'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-{
-    maxZoom:22
-});
-
-const osm = L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{
-    maxZoom:19
-});
-
-L.control.layers({
-    "Google Hybrid":googleHybrid,
-    "Google Road":googleRoad,
-    "OSM":osm
-}).addTo(map);
-
-/* =========================================================
+/* =====================================================
    GLOBALS
-========================================================= */
+===================================================== */
 
-let currentPolygonLayer = null;
-let currentLineLayer = null;
-let currentPointLayer = null;
-let highlightLayer = null;
+let polygonLayer;
+let lineLayer;
+let pointLayer;
+let highlightLayer;
+let currentUser;
 
-let activeUser = null;
-
-/* =========================================================
+/* =====================================================
    GITHUB PATHS
-========================================================= */
+===================================================== */
 
 const githubUser =
-location.hostname.split('.')[0];
+window.location.hostname.split('.')[0];
 
 const repoName =
-location.pathname.split('/')[1];
+window.location.pathname.split('/')[1];
 
 const baseURL =
 window.location.origin + "/" + repoName + "/";
 
-/* =========================================================
+/* =====================================================
    STATUS
-========================================================= */
+===================================================== */
 
 function setStatus(msg){
-    document.getElementById("statusBox")
-    .innerHTML = msg;
+    document.getElementById('status').innerHTML = msg;
 }
 
-/* =========================================================
+/* =====================================================
    LOGIN
-========================================================= */
+===================================================== */
 
 function login(){
 
-    const username =
-    document.getElementById("username")
-    .value
-    .trim();
+const u =
+document.getElementById('username').value.trim();
 
-    const password =
-    document.getElementById("password")
-    .value
-    .trim();
+const p =
+document.getElementById('password').value.trim();
 
-    if(
-        users[username] &&
-        users[username].password === password
-    ){
+if(users[u] && users[u].password === p){
 
-        activeUser = users[username];
+currentUser = users[u];
 
-        document.getElementById("loginOverlay")
-        .style.display = "none";
+document.getElementById('login').style.display='none';
 
-        loadTalukas();
+loadTalukas();
 
-    }else{
+}else{
 
-        document.getElementById("loginError")
-        .innerHTML = "Invalid Login Credentials";
-    }
+document.getElementById('error').innerHTML =
+'Invalid Login';
+}
 }
 
-/* =========================================================
-   LOAD TALUKAS
-========================================================= */
+/* =====================================================
+   TALUKAS
+===================================================== */
 
 function loadTalukas(){
 
-    const talukaSelect =
-    document.getElementById("talukaSelect");
+const talukas = [
+'Ardhapur','Bhokar','Biloli',
+'Deglur','Dharmabad'
+];
 
-    talukaSelect.disabled = false;
+const talukaSelect =
+document.getElementById('talukaSelect');
 
-    talukaSelect.innerHTML =
-    `<option value="">-- Select Taluka --</option>`;
-
-    const talukas = [
-        "Ardhapur","Bhokar","Biloli",
-        "Deglur","Dharmabad","Hadgaon",
-        "Himayatnagar","Kandhar",
-        "Kinwat","Loha","Mahur",
-        "Mudkhed","Mukhed","Naigaon",
-        "Nanded","Umri"
-    ];
+if(currentUser.access === 'ALL'){
 
     talukas.forEach(t=>{
 
-        if(
-            activeUser.access === "ALL" ||
-            activeUser.access.includes(t)
-        ){
-
-            const option =
-            document.createElement("option");
-
-            option.value = t;
-            option.textContent = t;
-
-            talukaSelect.appendChild(option);
-        }
+        talukaSelect.innerHTML +=
+        `<option value="${t}">${t}</option>`;
     });
 
-    setStatus("Login successful");
+}else{
+
+    currentUser.access.forEach(t=>{
+
+        talukaSelect.innerHTML +=
+        `<option value="${t}">${t}</option>`;
+    });
 }
 
-/* =========================================================
-   TALUKA CHANGE
-========================================================= */
+ talukaSelect.disabled = false;
+}
 
-document.getElementById("talukaSelect")
-.addEventListener("change", async function(){
+/* =====================================================
+   LOAD VILLAGES
+===================================================== */
 
-    const taluka = this.value;
+document.getElementById('talukaSelect')
+.addEventListener('change',async function(){
 
-    const villageSelect =
-    document.getElementById("villageSelect");
+const taluka = this.value;
 
-    villageSelect.innerHTML =
-    `<option>Loading villages...</option>`;
+const villageSelect =
+document.getElementById('villageSelect');
 
-    villageSelect.disabled = true;
+villageSelect.innerHTML =
+'<option>Loading...</option>';
 
-    if(!taluka)
-        return;
+try{
 
-    try{
-
-        setStatus("Scanning villages...");
-
-        const api =
+const api =
 `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`;
 
-        const res = await fetch(api);
+const res = await fetch(api);
 
-        if(!res.ok)
-            throw new Error("Taluka folder not found");
+const data = await res.json();
 
-        const folders = await res.json();
+villageSelect.innerHTML =
+'<option value="">Select Village</option>';
 
-        villageSelect.innerHTML =
-        `<option value="">-- Select Village --</option>`;
+for(const item of data){
 
-        let total = 0;
+    if(item.type === 'dir'){
 
-        for(const folder of folders){
-
-            if(folder.type !== "dir")
-                continue;
-
-            const villageRes =
-            await fetch(folder.url);
-
-            const villageFiles =
-            await villageRes.json();
-
-            const hasPolygon =
-            villageFiles.some(
-                f => f.name === "Polygon.geojson"
-            );
-
-            if(hasPolygon){
-
-                const option =
-                document.createElement("option");
-
-                option.value = folder.name;
-                option.textContent = folder.name;
-
-                villageSelect.appendChild(option);
-
-                total++;
-            }
-        }
-
-        villageSelect.disabled = false;
-
-        setStatus(
-        `✅ ${total} villages found`);
-
-    }catch(err){
-
-        console.error(err);
-
-        setStatus(
-        "❌ Failed to scan villages");
+        villageSelect.innerHTML +=
+        `<option value="${item.name}">${item.name}</option>`;
     }
+}
+
+villageSelect.disabled = false;
+
+setStatus('Villages loaded');
+
+}catch(err){
+
+console.error(err);
+
+setStatus('Village loading failed');
+}
 });
 
-/* =========================================================
-   LOAD VILLAGE
-========================================================= */
+/* =====================================================
+   LOAD GEOJSON
+===================================================== */
 
-document.getElementById("villageSelect")
-.addEventListener("change", async function(){
+document.getElementById('villageSelect')
+.addEventListener('change',async function(){
 
-    const taluka =
-    document.getElementById("talukaSelect")
-    .value;
+const taluka =
+document.getElementById('talukaSelect').value;
 
-    const village =
-    this.value;
+const village = this.value;
 
-    if(!village)
-        return;
+try{
 
-    try{
+setStatus('Loading GeoJSON...');
 
-        setStatus("Loading village layers...");
+if(polygonLayer) map.removeLayer(polygonLayer);
+if(lineLayer) map.removeLayer(lineLayer);
+if(pointLayer) map.removeLayer(pointLayer);
 
-        if(currentPolygonLayer)
-            map.removeLayer(currentPolygonLayer);
+/* POLYGON */
 
-        if(currentLineLayer)
-            map.removeLayer(currentLineLayer);
-
-        if(currentPointLayer)
-            map.removeLayer(currentPointLayer);
-
-        if(highlightLayer)
-            map.removeLayer(highlightLayer);
-
-        /* =================================================
-           POLYGON
-        ================================================= */
-
-        const polygonURL =
+const polygonURL =
 baseURL +
 `${taluka}/${village}/Polygon.geojson`;
 
-        console.log(polygonURL);
+console.log(polygonURL);
 
-        const polygonRes =
-        await fetch(polygonURL);
+const polygonRes = await fetch(polygonURL);
 
-        if(!polygonRes.ok)
-            throw new Error("Polygon.geojson missing");
+const polygonData = await polygonRes.json();
 
-        const polygonData =
-        await polygonRes.json();
+polygonLayer = L.geoJSON(polygonData,{
 
-        currentPolygonLayer =
-        L.geoJSON(polygonData,{
+style:{
+color:'red',
+weight:1,
+fillOpacity:0.03
+},
 
-            style:{
-                color:"#ff0000",
-                weight:1,
-                fillOpacity:0.03
-            },
+onEachFeature:(feature,layer)=>{
 
-            onEachFeature:(feature,layer)=>{
+const survey =
+feature.properties?.survey_no ||
+feature.properties?.gat_no ||
+feature.properties?.Survey_No;
 
-                const props =
-                feature.properties || {};
+if(survey){
 
-                const survey =
-                props.survey_no ||
-                props.Survey_No ||
-                props.gat_no ||
-                props.Gat_No ||
-                props.sr_no;
+layer.bindTooltip(
+String(survey),
+{
+permanent:true,
+className:'cadastral-label'
+});
+}
 
-                if(survey){
+layer.bindPopup(
+JSON.stringify(feature.properties)
+);
+}
 
-                    layer.bindTooltip(
-                    String(survey),
-                    {
-                        permanent:true,
-                        direction:"center",
-                        className:
-                        "cadastral-label"
-                    });
-                }
+}).addTo(map);
 
-                let html =
-                `<table class="popup-table">`;
+/* LINE */
 
-                for(let key in props){
-
-                    html += `
-                    <tr>
-                        <td><b>${key}</b></td>
-                        <td>${props[key]}</td>
-                    </tr>`;
-                }
-
-                html += `</table>`;
-
-                layer.bindPopup(html);
-            }
-
-        }).addTo(map);
-
-        /* =================================================
-           LINE
-        ================================================= */
-
-        const lineURL =
+const lineURL =
 baseURL +
 `${taluka}/${village}/Line.geojson`;
 
-        fetch(lineURL)
-        .then(r=>r.json())
-        .then(data=>{
+fetch(lineURL)
+.then(r=>r.json())
+.then(data=>{
 
-            currentLineLayer =
-            L.geoJSON(data,{
+lineLayer = L.geoJSON(data,{
+style:{
+color:'cyan',
+weight:2
+}
+}).addTo(map);
+});
 
-                style:{
-                    color:"#00ffff",
-                    weight:2
-                }
+/* POINT */
 
-            }).addTo(map);
-        });
-
-        /* =================================================
-           POINT
-        ================================================= */
-
-        const pointURL =
+const pointURL =
 baseURL +
 `${taluka}/${village}/Point.geojson`;
 
-        fetch(pointURL)
-        .then(r=>r.json())
-        .then(data=>{
+fetch(pointURL)
+.then(r=>r.json())
+.then(data=>{
 
-            currentPointLayer =
-            L.geoJSON(data,{
+pointLayer = L.geoJSON(data,{
 
-                pointToLayer:
-                (feature,latlng)=>{
+pointToLayer:(f,latlng)=>{
 
-                    return L.circleMarker(
-                    latlng,{
-                        radius:3,
-                        color:"yellow",
-                        fillColor:"yellow",
-                        fillOpacity:1
-                    });
-                }
+return L.circleMarker(latlng,{
+radius:3,
+color:'yellow',
+fillColor:'yellow',
+fillOpacity:1
+});
+}
 
-            }).addTo(map);
-        });
-
-        map.fitBounds(
-        currentPolygonLayer.getBounds(),
-        {
-            padding:[20,20]
-        });
-
-        document.getElementById("searchBox")
-        .disabled = false;
-
-        document.getElementById("searchBtn")
-        .disabled = false;
-
-        setStatus(
-        "✅ Village loaded successfully");
-
-    }catch(err){
-
-        console.error(err);
-
-        setStatus(
-        "❌ Failed to load village");
-    }
+}).addTo(map);
 });
 
-/* =========================================================
-   SEARCH SURVEY
-========================================================= */
+map.fitBounds(
+polygonLayer.getBounds()
+);
 
-document.getElementById("searchBtn")
-.addEventListener("click", searchSurvey);
+setStatus('GeoJSON loaded successfully');
 
-document.getElementById("searchBox")
-.addEventListener("keypress", function(e){
+}catch(err){
 
-    if(e.key === "Enter")
-        searchSurvey();
+console.error(err);
+
+setStatus('GeoJSON load failed');
+}
 });
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+document.getElementById('searchBtn')
+.addEventListener('click',searchSurvey);
 
 function searchSurvey(){
 
-    const val =
-    document.getElementById("searchBox")
-    .value
-    .trim()
-    .toLowerCase();
+const val =
+document.getElementById('searchBox')
+.value
+.trim()
+.toLowerCase();
 
-    if(!val)
-        return;
+if(!polygonLayer) return;
 
-    if(highlightLayer)
-        map.removeLayer(highlightLayer);
+polygonLayer.eachLayer(layer=>{
 
-    let found = false;
+const props =
+layer.feature.properties || {};
 
-    currentPolygonLayer.eachLayer(layer=>{
+const survey =
+props.survey_no ||
+props.gat_no ||
+props.Survey_No;
 
-        const props =
-        layer.feature?.properties || {};
+if(
+String(survey)
+.toLowerCase() === val
+){
 
-        const survey =
-        props.survey_no ||
-        props.Survey_No ||
-        props.gat_no ||
-        props.Gat_No ||
-        props.sr_no;
+if(highlightLayer)
+map.removeLayer(highlightLayer);
 
-        if(
-            survey &&
-            String(survey)
-            .trim()
-            .toLowerCase() === val
-        ){
+highlightLayer =
+L.geoJSON(layer.feature,{
 
-            found = true;
+style:{
+color:'cyan',
+weight:4,
+fillOpacity:0.3
+}
 
-            highlightLayer =
-            L.geoJSON(layer.feature,{
+}).addTo(map);
 
-                style:{
-                    color:"#00ffff",
-                    weight:4,
-                    fillOpacity:0.35
-                }
-
-            }).addTo(map);
-
-            map.fitBounds(
-                layer.getBounds(),
-                {
-                    maxZoom:20,
-                    padding:[40,40]
-                }
-            );
-
-            layer.openPopup();
-        }
-    });
-
-    if(found){
-
-        setStatus(
-        `🎯 Survey No ${val} found`);
-
-    }else{
-
-        setStatus(
-        `❌ Survey No not found`);
-
-        alert("Survey number not found");
-    }
+map.fitBounds(layer.getBounds());
+}
+});
 }
 
 </script>
 
 </body>
 </html>
+```
+
+---
+
+# MOST IMPORTANT
+
+If still showing:
+
+```text
+GPKG load failed
+```
+
+then:
+
+* Browser cache still loading OLD script
+* Press:
+
+```text
+CTRL + SHIFT + R
+```
+
+OR
+
+open:
+
+```text
+F12 → Network → Disable Cache
+```
+
+because THIS script contains ZERO GPKG code.
