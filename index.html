@@ -454,7 +454,7 @@ document.getElementById("loginError")
 }
 
 /* =====================================================
-   LOAD TALUKAS FAST
+   LOAD TALUKAS
 ===================================================== */
 
 async function loadTalukas(){
@@ -462,12 +462,9 @@ async function loadTalukas(){
 const talukaSelect =
 document.getElementById("talukaSelect");
 
-talukaSelect.innerHTML =
-`<option>Loading Talukas...</option>`;
-
 try{
 
-setStatus("Fetching talukas...");
+setStatus("Loading Talukas...");
 
 const api =
 `https://api.github.com/repos/${githubUser}/${repoName}/contents`;
@@ -513,7 +510,7 @@ talukaSelect.appendChild(option);
 talukaSelect.disabled = false;
 
 setStatus(
-`✅ ${talukas.length} talukas loaded`
+`✅ ${talukas.length} Talukas Loaded`
 );
 
 }catch(err){
@@ -521,13 +518,13 @@ setStatus(
 console.error(err);
 
 setStatus(
-"❌ Failed to load talukas"
+"❌ Taluka loading failed"
 );
 }
 }
 
 /* =====================================================
-   LOAD VILLAGES FAST
+   LOAD VILLAGES
 ===================================================== */
 
 document.getElementById("talukaSelect")
@@ -535,18 +532,14 @@ document.getElementById("talukaSelect")
 
 const taluka = this.value;
 
+if(!taluka) return;
+
 const villageSelect =
 document.getElementById("villageSelect");
 
-villageSelect.innerHTML =
-`<option>Loading villages...</option>`;
-
-if(!taluka)
-return;
-
 try{
 
-setStatus("Fetching villages...");
+setStatus("Loading Villages...");
 
 const api =
 `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`;
@@ -573,7 +566,6 @@ const option =
 document.createElement("option");
 
 option.value = village.name;
-
 option.textContent = village.name;
 
 villageSelect.appendChild(option);
@@ -583,7 +575,7 @@ villageSelect.appendChild(option);
 villageSelect.disabled = false;
 
 setStatus(
-`✅ ${villages.length} villages loaded`
+`✅ ${villages.length} Villages Loaded`
 );
 
 }catch(err){
@@ -591,7 +583,7 @@ setStatus(
 console.error(err);
 
 setStatus(
-"❌ Failed to fetch villages"
+"❌ Village loading failed"
 );
 }
 });
@@ -604,52 +596,86 @@ document.getElementById("villageSelect")
 .addEventListener("change", async function(){
 
 const taluka =
-document.getElementById("talukaSelect")
-.value;
+document.getElementById("talukaSelect").value;
 
 const village =
 this.value;
 
-if(!village)
-return;
+if(!village) return;
 
 try{
 
-setStatus(
-"Loading village layers..."
-);
+setStatus("Loading GIS Layers...");
 
 /* CLEAR OLD */
 
-if(polygonLayer)
-map.removeLayer(polygonLayer);
+if(polygonLayer) map.removeLayer(polygonLayer);
+if(lineLayer) map.removeLayer(lineLayer);
+if(pointLayer) map.removeLayer(pointLayer);
+if(highlightLayer) map.removeLayer(highlightLayer);
 
-if(lineLayer)
-map.removeLayer(lineLayer);
+/* =================================================
+   FETCH FILE LIST
+================================================= */
 
-if(pointLayer)
-map.removeLayer(pointLayer);
+const folderAPI =
+`https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}/${village}`;
 
-if(highlightLayer)
-map.removeLayer(highlightLayer);
+const folderRes =
+await fetch(folderAPI);
+
+const files =
+await folderRes.json();
+
+/* =================================================
+   DETECT FILES
+================================================= */
+
+let polygonFile = null;
+let lineFile = null;
+let pointFile = null;
+
+files.forEach(file=>{
+
+const name =
+file.name.toLowerCase();
+
+if(
+name.includes("polygon") ||
+name.includes("poly")
+){
+polygonFile = file.name;
+}
+
+else if(
+name.includes("line")
+){
+lineFile = file.name;
+}
+
+else if(
+name.includes("point") ||
+name.includes("text")
+){
+pointFile = file.name;
+}
+
+});
 
 /* =================================================
    POLYGON
 ================================================= */
 
+if(polygonFile){
+
 const polygonURL =
 baseURL +
-`${taluka}/${village}/Polygon.geojson`;
+`${taluka}/${village}/${polygonFile}`;
 
 console.log(polygonURL);
 
 const polygonRes =
 await fetch(polygonURL);
-
-if(!polygonRes.ok)
-throw new Error(
-"Polygon.geojson missing"
-);
 
 const polygonData =
 await polygonRes.json();
@@ -657,10 +683,12 @@ await polygonRes.json();
 polygonLayer =
 L.geoJSON(polygonData,{
 
+renderer:L.canvas(),
+
 style:{
 color:"red",
 weight:1,
-fillOpacity:0.03
+fillOpacity:0.02
 },
 
 onEachFeature:(feature,layer)=>{
@@ -674,7 +702,9 @@ props.Survey_No ||
 props.gat_no ||
 props.Gat_No ||
 props.sr_no ||
-props.SR_NO;
+props.SR_NO ||
+props.Text ||
+props.text;
 
 if(survey){
 
@@ -683,14 +713,14 @@ String(survey),
 {
 permanent:true,
 direction:"center",
-className:
-"cadastral-label"
+className:"cadastral-label"
 }
 );
+
 }
 
 let html =
-"<table border='1' style='border-collapse:collapse;'>";
+"<table border='1' style='border-collapse:collapse;font-size:12px;'>";
 
 for(let key in props){
 
@@ -704,64 +734,78 @@ html +=
 html += "</table>";
 
 layer.bindPopup(html);
+
 }
 
 }).addTo(map);
+
+/* FIT */
+
+if(
+polygonLayer.getBounds &&
+polygonLayer.getBounds().isValid()
+){
+
+map.fitBounds(
+polygonLayer.getBounds(),
+{
+padding:[20,20],
+maxZoom:20
+}
+);
+
+}
+
+}
 
 /* =================================================
    LINE
 ================================================= */
 
+if(lineFile){
+
 const lineURL =
 baseURL +
-`${taluka}/${village}/Line.geojson`;
+`${taluka}/${village}/${lineFile}`;
 
 fetch(lineURL)
-.then(r=>{
-
-if(!r.ok) return null;
-
-return r.json();
-
-})
+.then(r=>r.json())
 .then(data=>{
-
-if(!data) return;
 
 lineLayer =
 L.geoJSON(data,{
 
+renderer:L.canvas(),
+
 style:{
-color:"cyan",
-weight:2
+color:"#00ffff",
+weight:1.5
 }
 
 }).addTo(map);
 
 });
 
+}
+
 /* =================================================
    POINT
 ================================================= */
 
+if(pointFile){
+
 const pointURL =
 baseURL +
-`${taluka}/${village}/Point.geojson`;
+`${taluka}/${village}/${pointFile}`;
 
 fetch(pointURL)
-.then(r=>{
-
-if(!r.ok) return null;
-
-return r.json();
-
-})
+.then(r=>r.json())
 .then(data=>{
-
-if(!data) return;
 
 pointLayer =
 L.geoJSON(data,{
+
+renderer:L.canvas(),
 
 pointToLayer:
 (feature,latlng)=>{
@@ -769,26 +813,45 @@ pointToLayer:
 return L.circleMarker(
 latlng,
 {
-radius:3,
-color:"yellow",
-fillColor:"yellow",
+radius:2,
+color:"#ffff00",
+fillColor:"#ffff00",
 fillOpacity:1
 }
 );
+
+},
+
+onEachFeature:(feature,layer)=>{
+
+const props =
+feature.properties || {};
+
+const label =
+props.Text ||
+props.text ||
+props.name;
+
+if(label){
+
+layer.bindTooltip(
+String(label),
+{
+permanent:true,
+direction:"top",
+className:"cadastral-label"
+}
+);
+
+}
+
 }
 
 }).addTo(map);
 
 });
 
-/* FIT */
-
-map.fitBounds(
-polygonLayer.getBounds(),
-{
-padding:[20,20]
 }
-);
 
 /* ENABLE SEARCH */
 
@@ -799,7 +862,7 @@ document.getElementById("searchBtn")
 .disabled = false;
 
 setStatus(
-"✅ Village loaded successfully"
+`✅ ${village} Loaded Successfully`
 );
 
 }catch(err){
@@ -807,13 +870,17 @@ setStatus(
 console.error(err);
 
 setStatus(
-"❌ GeoJSON loading failed"
+"❌ GeoJSON Loading Failed"
+);
+
+alert(
+"GeoJSON not loading.\n\nCheck:\n1. CRS = EPSG:4326\n2. Valid GeoJSON\n3. Correct folder structure"
 );
 }
 });
 
 /* =====================================================
-   SEARCH
+   SEARCH SURVEY
 ===================================================== */
 
 document.getElementById("searchBtn")
@@ -860,7 +927,9 @@ props.Survey_No ||
 props.gat_no ||
 props.Gat_No ||
 props.sr_no ||
-props.SR_NO;
+props.SR_NO ||
+props.Text ||
+props.text;
 
 if(
 survey &&
@@ -897,17 +966,17 @@ layer.openPopup();
 if(found){
 
 setStatus(
-`🎯 Survey ${val} found`
+`🎯 Survey ${val} Found`
 );
 
 }else{
 
 setStatus(
-`❌ Survey not found`
+`❌ Survey Not Found`
 );
 
 alert(
-"Survey number not found"
+"Survey Number Not Found"
 );
 }
 }
