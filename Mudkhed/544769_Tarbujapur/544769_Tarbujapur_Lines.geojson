@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "544769_Tarbujapur_Lines",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "sourcel": "Line_Vahivat_line", "Taluka": "Mudkhed", "LGD_Code": "544769", "MAP_ID": "485410154476909000001", "Vill_Name": "Tarbujapur", "File_name": "544769_Tarbujapur" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.371994686057107, 19.19058276191295 ], [ 77.37290732879444, 19.190398060188251 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Vahivat_line", "Taluka": "Mudkhed", "LGD_Code": "544769", "MAP_ID": "485410154476909000001", "Vill_Name": "Tarbujapur", "File_name": "544769_Tarbujapur" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.376354973905876, 19.194304277363049 ], [ 77.376797705731349, 19.194436156253602 ] ] ] } }
+]
+}

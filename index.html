@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Nanded GIS Portal</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<script src="https://unpkg.com/@ngageoint/geopackage/dist/geopackage.min.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    display:flex;
+    height:100vh;
+    font-family:Arial;
+}
+
+#sidebar{
+    width:340px;
+    background:#0f172a;
+    color:white;
+    padding:15px;
+    overflow:auto;
+}
+
+#map{
+    flex:1;
+}
+
+select,input,button{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+}
+
+button{
+    background:#0284c7;
+    color:white;
+    border:none;
+}
+
+.status{
+    margin-top:10px;
+    font-size:12px;
+    color:#38bdf8;
+}
+
+#loginOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.loginCard{
+    background:white;
+    padding:30px;
+    width:320px;
+}
+
+.loginCard input{
+    width:100%;
+    margin-top:10px;
+}
+
+.cadastral-label{
+    background:transparent !important;
+    border:none !important;
+    color:yellow !important;
+    font-weight:bold;
+    text-shadow:1px 1px 2px black;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div id="loginOverlay">
+
+    <div class="loginCard">
+
+        <h3>Nanded GIS Portal</h3>
+
+        <input
+        id="username"
+        placeholder="Username">
+
+        <input
+        type="password"
+        id="password"
+        placeholder="Password">
+
+        <button onclick="login()">
+            Login
+        </button>
+
+        <div id="loginError"
+        style="color:red;margin-top:10px;"></div>
+
+    </div>
+
+</div>
+
+<!-- SIDEBAR -->
+
+<div id="sidebar">
+
+    <h2>Nanded GIS</h2>
+
+    <label>Taluka</label>
+
+    <select id="talukaSelect" disabled>
+        <option value="">Select Taluka</option>
+    </select>
+
+    <label>Village</label>
+
+    <select id="villageSelect" disabled>
+        <option value="">Select Village</option>
+    </select>
+
+    <label>Survey Number</label>
+
+    <input
+    id="searchBox"
+    placeholder="Survey No"
+    disabled>
+
+    <button
+    id="searchBtn"
+    disabled>
+    Search
+    </button>
+
+    <div class="status" id="statusBox">
+        Ready
+    </div>
+
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+/* =========================================================
+   USERS
+========================================================= */
+
+const users = {
+
+"Ardhapur_taluka":{
+    password:"Ardhapur@123",
+    access:["Ardhapur"]
+},
+
+"Bhokar_taluka":{
+    password:"Bhokar@123",
+    access:["Bhokar"]
+},
+
+"Biloli_taluka":{
+    password:"Biloli@123",
+    access:["Biloli"]
+},
+
+"Deglur_taluka":{
+    password:"Deglur@123",
+    access:["Deglur"]
+},
+
+"Dharmabad_taluka":{
+    password:"Dharmabad@123",
+    access:["Dharmabad"]
+},
+
+"Hadgaon_taluka":{
+    password:"Hadgaon@123",
+    access:["Hadgaon"]
+},
+
+"Himayatnagar_taluka":{
+    password:"Himayatnagar@123",
+    access:["Himayatnagar"]
+},
+
+"Kandhar_taluka":{
+    password:"Kandhar@123",
+    access:["Kandhar"]
+},
+
+"Kinwat_taluka":{
+    password:"Kinwat@123",
+    access:["Kinwat"]
+},
+
+"Loha_taluka":{
+    password:"Loha@123",
+    access:["Loha"]
+},
+
+"Mahur_taluka":{
+    password:"Mahur@123",
+    access:["Mahur"]
+},
+
+"Mudkhed_taluka":{
+    password:"Mudkhed@123",
+    access:["Mudkhed"]
+},
+
+"Mukhed_taluka":{
+    password:"Mukhed@123",
+    access:["Mukhed"]
+},
+
+"Naigaon_taluka":{
+    password:"Naigaon@123",
+    access:["Naigaon"]
+},
+
+"Nanded_taluka":{
+    password:"Nanded@123",
+    access:["Nanded"]
+},
+
+"Umri_taluka":{
+    password:"Umri@123",
+    access:["Umri"]
+},
+
+"Nanded_district":{
+    password:"Nanded@123",
+    access:"ALL"
+},
+
+"Admin":{
+    password:"Admin@321",
+    access:"ALL"
+}
+
+};
+
+/* =========================================================
+   MAP
+========================================================= */
+
+const map = L.map('map')
+.setView([19.16,77.31],10);
+
+L.tileLayer(
+'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+{
+    maxZoom:22
+}).addTo(map);
+
+/* =========================================================
+   GLOBALS
+========================================================= */
+
+let currentLayer = null;
+let activeUser = null;
+
+/* =========================================================
+   GITHUB PATHS
+========================================================= */
+
+const githubUser =
+location.hostname.split('.')[0];
+
+const repoName =
+location.pathname.split('/')[1];
+
+const baseURL =
+window.location.origin + "/" + repoName + "/";
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(msg){
+    document.getElementById("statusBox")
+    .innerHTML = msg;
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+function login(){
+
+    const u =
+    document.getElementById("username")
+    .value.trim();
+
+    const p =
+    document.getElementById("password")
+    .value.trim();
+
+    if(
+        users[u] &&
+        users[u].password === p
+    ){
+
+        activeUser = users[u];
+
+        document.getElementById("loginOverlay")
+        .style.display = "none";
+
+        loadTalukas();
+
+    }else{
+
+        document.getElementById("loginError")
+        .innerHTML = "Invalid Login";
+    }
+}
+
+/* =========================================================
+   LOAD TALUKAS
+========================================================= */
+
+function loadTalukas(){
+
+    const talukaSelect =
+    document.getElementById("talukaSelect");
+
+    talukaSelect.disabled = false;
+
+    talukaSelect.innerHTML =
+    `<option value="">Select Taluka</option>`;
+
+    const talukas = [
+    "Ardhapur","Bhokar","Biloli",
+    "Deglur","Dharmabad","Hadgaon",
+    "Himayatnagar","Kandhar",
+    "Kinwat","Loha","Mahur",
+    "Mudkhed","Mukhed","Naigaon",
+    "Nanded","Umri"
+    ];
+
+    talukas.forEach(t=>{
+
+        if(
+            activeUser.access === "ALL" ||
+            activeUser.access.includes(t)
+        ){
+
+            const opt =
+            document.createElement("option");
+
+            opt.value = t;
+            opt.textContent = t;
+
+            talukaSelect.appendChild(opt);
+        }
+    });
+}
+
+/* =========================================================
+   TALUKA CHANGE
+========================================================= */
+
+document.getElementById("talukaSelect")
+.addEventListener("change", async function(){
+
+    const taluka = this.value;
+
+    const villageSelect =
+    document.getElementById("villageSelect");
+
+    villageSelect.innerHTML =
+    `<option>Loading...</option>`;
+
+    try{
+
+        const api =
+`https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`;
+
+        const res = await fetch(api);
+
+        const folders =
+        await res.json();
+
+        villageSelect.innerHTML =
+        `<option value="">Select Village</option>`;
+
+        for(const folder of folders){
+
+            if(folder.type === "dir"){
+
+                const opt =
+                document.createElement("option");
+
+                opt.value = folder.name;
+                opt.textContent = folder.name;
+
+                villageSelect.appendChild(opt);
+            }
+        }
+
+        villageSelect.disabled = false;
+
+    }catch(err){
+
+        console.error(err);
+
+        setStatus(
+        "Failed to fetch villages");
+    }
+});
+
+/* =========================================================
+   LOAD VILLAGE GPKG
+========================================================= */
+
+document.getElementById("villageSelect")
+.addEventListener("change", async function(){
+
+    const taluka =
+    document.getElementById("talukaSelect").value;
+
+    const village =
+    this.value;
+
+    if(!village) return;
+
+    try{
+
+        setStatus("Loading GPKG...");
+
+        if(currentLayer)
+            map.removeLayer(currentLayer);
+
+        const gpkgURL =
+baseURL +
+`${taluka}/${village}/Polygon.gpkg`;
+
+        const res =
+        await fetch(gpkgURL);
+
+        const buffer =
+        await res.arrayBuffer();
+
+        const gpkg =
+        await GeoPackage.GeoPackageAPI
+        .open(buffer);
+
+        const tables =
+        gpkg.getFeatureTables();
+
+        const geojson = {
+            type:"FeatureCollection",
+            features:[]
+        };
+
+        for(const table of tables){
+
+            const features =
+            gpkg.queryForGeoJSONFeaturesInTable(table);
+
+            geojson.features.push(...features);
+        }
+
+        currentLayer =
+        L.geoJSON(geojson,{
+
+            style:{
+                color:"red",
+                weight:1
+            },
+
+            onEachFeature:(f,l)=>{
+
+                const s =
+                f.properties?.survey_no;
+
+                if(s){
+
+                    l.bindTooltip(
+                    String(s),
+                    {
+                        permanent:true,
+                        className:
+                        "cadastral-label"
+                    });
+                }
+
+                let html = "";
+
+                for(let k in f.properties){
+
+                    html +=
+                    `<b>${k}</b>: ${f.properties[k]}<br>`;
+                }
+
+                l.bindPopup(html);
+            }
+
+        }).addTo(map);
+
+        map.fitBounds(
+        currentLayer.getBounds());
+
+        document.getElementById("searchBox")
+        .disabled = false;
+
+        document.getElementById("searchBtn")
+        .disabled = false;
+
+        setStatus(
+        "Village Loaded");
+
+    }catch(err){
+
+        console.error(err);
+
+        setStatus(
+        "GPKG load failed");
+    }
+});
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+document.getElementById("searchBtn")
+.addEventListener("click",()=>{
+
+    const val =
+    document.getElementById("searchBox")
+    .value
+    .trim()
+    .toLowerCase();
+
+    currentLayer.eachLayer(layer=>{
+
+        const s =
+        String(
+        layer.feature.properties.survey_no
+        || "")
+        .toLowerCase();
+
+        if(s === val){
+
+            map.fitBounds(
+            layer.getBounds());
+
+            layer.openPopup();
+        }
+    });
+});
+
+</script>
+
+</body>
+</html>
