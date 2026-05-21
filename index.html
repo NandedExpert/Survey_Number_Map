@@ -37,7 +37,6 @@ button:hover { background:#0369a1; }
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginOverlay">
     <div class="loginCard">
         <h2>Nanded Survey Number Georeferencing</h2>
@@ -48,7 +47,6 @@ button:hover { background:#0369a1; }
     </div>
 </div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
     <h2>Survey Number Maps</h2>
     <label>Select Taluka</label>
@@ -65,7 +63,6 @@ button:hover { background:#0369a1; }
     <div id="status">Ready...</div>
 </div>
 
-<!-- MAP -->
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -93,17 +90,21 @@ const users = {
     "Umri_taluka": { password:"Umri@123", access:["Umri"] }
 };
 
-/* MAP */
+/* MAP & LAYER CONTROL SETUP */
 const map = L.map('map').setView([19.16,77.31], 10);
 const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom:22 }).addTo(map);
 const googleRoad = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom:22 });
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 });
 
-L.control.layers({
+const baseMaps = {
     "Google Hybrid": googleHybrid,
     "Google Road": googleRoad,
     "OSM": osm
-}).addTo(map);
+};
+
+// Initialize the global layer control
+// collapsed: false keeps the menu open, change to true if you want it minimized
+const layerControl = L.control.layers(baseMaps, {}, { collapsed: false }).addTo(map);
 
 /* GLOBALS */
 let polygonLayer = null;
@@ -205,11 +206,11 @@ document.getElementById("villageSelect").addEventListener("change", async functi
     try {
         setStatus("Loading GIS Layers...");
 
-        /* CLEAR OLD */
-        if(polygonLayer) map.removeLayer(polygonLayer);
-        if(lineLayer) map.removeLayer(lineLayer);
-        if(pointLayer) map.removeLayer(pointLayer);
-        if(highlightLayer) map.removeLayer(highlightLayer);
+        /* CLEAR OLD LAYERS FROM MAP AND LAYER CONTROL */
+        if(polygonLayer) { map.removeLayer(polygonLayer); layerControl.removeLayer(polygonLayer); }
+        if(lineLayer) { map.removeLayer(lineLayer); layerControl.removeLayer(lineLayer); }
+        if(pointLayer) { map.removeLayer(pointLayer); layerControl.removeLayer(pointLayer); }
+        if(highlightLayer) { map.removeLayer(highlightLayer); }
 
         /* FETCH FILE LIST */
         const folderAPI = `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}/${village}`;
@@ -250,6 +251,9 @@ document.getElementById("villageSelect").addEventListener("change", async functi
                 }
             }).addTo(map);
 
+            // Add to Layer Control
+            layerControl.addOverlay(polygonLayer, "Polygon Layer");
+
             if(polygonLayer.getBounds && Object.keys(polygonLayer._layers).length > 0) {
                 map.fitBounds(polygonLayer.getBounds(), { padding:[20,20], maxZoom:20 });
             }
@@ -281,6 +285,9 @@ document.getElementById("villageSelect").addEventListener("change", async functi
                     layer.bindPopup(html);
                 }
             }).addTo(map);
+
+            // Add to Layer Control
+            layerControl.addOverlay(lineLayer, "Line Layer");
         }
 
         /* POINT LAYER */
@@ -302,6 +309,9 @@ document.getElementById("villageSelect").addEventListener("change", async functi
                     }
                 }
             }).addTo(map);
+
+            // Add to Layer Control
+            layerControl.addOverlay(pointLayer, "Point Layer");
         }
 
         /* ENABLE SEARCH */
