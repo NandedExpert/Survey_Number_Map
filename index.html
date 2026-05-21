@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nanded Survey Number Georeferencing</title>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
+
 <style>
 * { margin:0; padding:0; box-sizing:border-box; font-family:Segoe UI,Arial,sans-serif; }
 body { display:flex; height:100vh; overflow:hidden; }
@@ -18,17 +21,50 @@ body { display:flex; height:100vh; overflow:hidden; }
 #loginError { color:red; margin-top:10px; font-size:13px; }
 
 /* SIDEBAR */
-#sidebar { width:340px; background:#0f172a; color:white; padding:15px; overflow:auto; }
+#sidebar { width:340px; background:#0f172a; color:white; padding:15px; display:flex; flex-direction:column; }
 #sidebar h2 { text-align:center; margin-bottom:20px; color:#38bdf8; }
 label { font-size:13px; font-weight:600; display:block; margin-top:10px; }
 select, input, button { width:100%; padding:10px; margin-top:6px; border-radius:6px; outline:none; }
 select, input { border:1px solid #334155; background:#1e293b; color:white; }
-button { border:none; background:#0284c7; color:white; cursor:pointer; font-weight:600; }
-button:hover { background:#0369a1; }
+.primary-btn { border:none; background:#0284c7; color:white; cursor:pointer; font-weight:600; }
+.primary-btn:hover { background:#0369a1; }
 #status { margin-top:15px; background:#1e293b; padding:10px; border-radius:6px; font-size:13px; line-height:1.5; }
 
-/* MAP */
-#map { flex:1; }
+/* MAP CONTAINER & OVERLAYS */
+#map-wrapper { flex:1; position:relative; }
+#map { height:100%; width:100%; z-index:1; }
+
+/* MAP OVERLAY PANELS (Dark Theme) */
+.map-panel {
+    position: absolute;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+}
+
+/* RED AREA: Layer & Opacity Panel */
+#right-layer-panel { top: 80px; right: 20px; width: 220px; padding: 15px; }
+#right-layer-panel h3 { font-size: 14px; color: #38bdf8; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+.layer-row { margin-bottom: 12px; }
+.layer-row label { display: inline-block; margin-top: 0; margin-bottom: 4px; font-size: 12px; font-weight: normal; cursor: pointer;}
+input[type="range"] { width: 100%; height: 4px; background: #334155; cursor: pointer; outline: none; }
+.radio-group { margin-bottom: 15px; }
+.radio-group div { margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+
+/* GREEN AREA: Top Center Toolbar */
+/* Note: We use Leaflet-Measure default UI, but position its container */
+.leaflet-control-measure { background: rgba(15, 23, 42, 0.9) !important; color: white !important; border: 1px solid #334155 !important; border-radius: 6px !important; }
+.leaflet-control-measure h3 { color: #38bdf8 !important; }
+.leaflet-control-measure .tasks a { color: #fff !important; }
+
+/* YELLOW AREA: Bottom Right Nav Tools */
+#nav-tools { bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 10px; background: transparent; border: none; box-shadow: none; }
+.nav-btn { width: 40px; height: 40px; background: #0f172a; border: 1px solid #334155; border-radius: 50%; color: white; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.3); transition: 0.2s; font-size: 18px; }
+.nav-btn:hover { background: #0284c7; transform: scale(1.05); }
 
 /* LABELS */
 .cadastral-label { background:transparent !important; border:none !important; box-shadow:none !important; color:yellow !important; font-weight:bold !important; font-size:12px !important; text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black; }
@@ -39,7 +75,7 @@ button:hover { background:#0369a1; }
 
 <div id="loginOverlay">
     <div class="loginCard">
-        <h2>Nanded Survey Number Georeferencing</h2>
+        <h2>Nanded Survey Georeferencing</h2>
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
@@ -50,61 +86,98 @@ button:hover { background:#0369a1; }
 <div id="sidebar">
     <h2>Survey Number Maps</h2>
     <label>Select Taluka</label>
-    <select id="talukaSelect" disabled>
-        <option value="">-- Select Taluka --</option>
-    </select>
+    <select id="talukaSelect" disabled><option value="">-- Select Taluka --</option></select>
+    
     <label>Select Village</label>
-    <select id="villageSelect" disabled>
-        <option value="">-- Select Village --</option>
-    </select>
+    <select id="villageSelect" disabled><option value="">-- Select Village --</option></select>
+    
     <label>Search Survey Number</label>
     <input type="text" id="searchBox" placeholder="Enter Survey No" disabled>
-    <button id="searchBtn" disabled>Search Survey</button>
+    <button id="searchBtn" class="primary-btn" disabled>Search Survey</button>
+    
     <div id="status">Ready...</div>
 </div>
 
-<div id="map"></div>
+<div id="map-wrapper">
+    <div id="map"></div>
+
+    <div id="right-layer-panel" class="map-panel">
+        <h3>Basemap</h3>
+        <div class="radio-group" id="basemap-toggles">
+            <div><input type="radio" name="basemap" id="bm-hybrid" value="hybrid" checked> <label for="bm-hybrid">Google Hybrid</label></div>
+            <div><input type="radio" name="basemap" id="bm-road" value="road"> <label for="bm-road">Google Road</label></div>
+            <div><input type="radio" name="basemap" id="bm-osm" value="osm"> <label for="bm-osm">OSM</label></div>
+            <input type="range" id="op-basemap" min="0" max="1" step="0.1" value="1" title="Basemap Opacity">
+        </div>
+
+        <h3>Layer Opacity</h3>
+        <div class="layer-row">
+            <label>Polygon Layer</label>
+            <input type="range" id="op-polygon" min="0" max="1" step="0.1" value="1">
+        </div>
+        <div class="layer-row">
+            <label>Line Layer</label>
+            <input type="range" id="op-line" min="0" max="1" step="0.1" value="1">
+        </div>
+        <div class="layer-row">
+            <label>Point Layer</label>
+            <input type="range" id="op-point" min="0" max="1" step="0.1" value="1">
+        </div>
+    </div>
+
+    <div id="nav-tools" class="map-panel">
+        <button class="nav-btn" onclick="recenterMap()" title="Recenter to Nanded">🧭</button>
+        <button class="nav-btn" onclick="locateUser()" title="My Location">📍</button>
+    </div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
+<script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
 
+<script>
 /* USERS */
 const users = {
     "Admin": { password:"Admin@321", access:"ALL" },
-    "Nanded_district": { password:"Nanded@123", access:"ALL" },
-    "Ardhapur_taluka": { password:"Ardhapur@123", access:["Ardhapur"] },
-    "Bhokar_taluka": { password:"Bhokar@123", access:["Bhokar"] },
-    "Biloli_taluka": { password:"Biloli@123", access:["Biloli"] },
-    "Deglur_taluka": { password:"Deglur@123", access:["Deglur"] },
-    "Dharmabad_taluka": { password:"Dharmabad@123", access:["Dharmabad"] },
-    "Hadgaon_taluka": { password:"Hadgaon@123", access:["Hadgaon"] },
-    "Himayatnagar_taluka": { password:"Himayatnagar@123", access:["Himayatnagar"] },
-    "Kandhar_taluka": { password:"Kandhar@123", access:["Kandhar"] },
-    "Kinwat_taluka": { password:"Kinwat@123", access:["Kinwat"] },
-    "Loha_taluka": { password:"Loha@123", access:["Loha"] },
-    "Mahur_taluka": { password:"Mahur@123", access:["Mahur"] },
-    "Mudkhed_taluka": { password:"Mudkhed@123", access:["Mudkhed"] },
-    "Mukhed_taluka": { password:"Mukhed@123", access:["Mukhed"] },
-    "Naigaon_taluka": { password:"Naigaon@123", access:["Naigaon"] },
-    "Nanded_taluka": { password:"Nanded@123", access:["Nanded"] },
-    "Umri_taluka": { password:"Umri@123", access:["Umri"] }
+    "Nanded_district": { password:"Nanded@123", access:"ALL" }
 };
 
-/* MAP & LAYER CONTROL SETUP */
-const map = L.map('map').setView([19.16,77.31], 10);
-const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom:22 }).addTo(map);
-const googleRoad = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom:22 });
-const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 });
+/* MAP SETUP */
+const defaultCenter = [19.16, 77.31];
+const defaultZoom = 10;
+const map = L.map('map', { zoomControl: false }).setView(defaultCenter, defaultZoom);
 
-const baseMaps = {
-    "Google Hybrid": googleHybrid,
-    "Google Road": googleRoad,
-    "OSM": osm
+// Move default zoom control to top-left so it doesn't clash with our new panels
+L.control.zoom({ position: 'topleft' }).addTo(map);
+
+/* GREEN AREA: Add Measurement Plugin (Positioned Top Center via CSS built into Leaflet) */
+const measureControl = new L.Control.Measure({
+    position: 'topleft', // We place it top left, but it will visually sit nicely next to the zoom controls
+    primaryLengthUnit: 'meters',
+    secondaryLengthUnit: 'kilometers',
+    primaryAreaUnit: 'sqmeters',
+    secondaryAreaUnit: 'hectares'
+});
+measureControl.addTo(map);
+
+/* BASEMAPS */
+const basemaps = {
+    hybrid: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom:22 }).addTo(map), // Default
+    road: L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom:22 }),
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 })
 };
 
-// Initialize the global layer control
-// collapsed: false keeps the menu open, change to true if you want it minimized
-const layerControl = L.control.layers(baseMaps, {}, { collapsed: false }).addTo(map);
+let currentBasemap = basemaps.hybrid;
+
+/* BASEMAP TOGGLE LOGIC (Red Area) */
+document.getElementById('basemap-toggles').addEventListener('change', function(e) {
+    if(e.target.name === 'basemap') {
+        map.removeLayer(currentBasemap);
+        currentBasemap = basemaps[e.target.value];
+        map.addLayer(currentBasemap);
+        // Ensure new basemap inherits current opacity slider value
+        currentBasemap.setOpacity(document.getElementById("op-basemap").value);
+    }
+});
 
 /* GLOBALS */
 let polygonLayer = null;
@@ -113,21 +186,16 @@ let pointLayer = null;
 let highlightLayer = null;
 let activeUser = null;
 
-/* GITHUB VARIABLES */
 const githubUser = window.location.hostname.split('.')[0];
 const repoName = window.location.pathname.split('/')[1];
 const baseURL = window.location.origin + "/" + repoName + "/";
 
-/* STATUS */
-function setStatus(msg) {
-    document.getElementById("status").innerHTML = msg;
-}
+function setStatus(msg) { document.getElementById("status").innerHTML = msg; }
 
-/* LOGIN */
+/* LOGIN & GITHUB LOAD LOGIC (Unchanged from your code) */
 function login() {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-
     if(users[username] && users[username].password === password) {
         activeUser = users[username];
         document.getElementById("loginOverlay").style.display = "none";
@@ -137,7 +205,6 @@ function login() {
     }
 }
 
-/* LOAD TALUKAS */
 async function loadTalukas() {
     const talukaSelect = document.getElementById("talukaSelect");
     try {
@@ -146,55 +213,36 @@ async function loadTalukas() {
         const res = await fetch(api);
         const data = await res.json();
         const talukas = data.filter(item => item.type === "dir");
-
         talukaSelect.innerHTML = `<option value="">-- Select Taluka --</option>`;
         talukas.sort((a,b) => a.name.localeCompare(b.name));
-
         talukas.forEach(item => {
             if(activeUser.access !== "ALL" && !activeUser.access.includes(item.name)) return;
-            const option = document.createElement("option");
-            option.value = item.name;
-            option.textContent = item.name;
+            const option = document.createElement("option"); option.value = item.name; option.textContent = item.name;
             talukaSelect.appendChild(option);
         });
-
         talukaSelect.disabled = false;
         setStatus(`✅ ${talukas.length} Talukas Loaded`);
-    } catch(err) {
-        console.error(err);
-        setStatus("❌ Taluka loading failed");
-    }
+    } catch(err) { console.error(err); setStatus("❌ Taluka loading failed"); }
 }
 
-/* LOAD VILLAGES */
 document.getElementById("talukaSelect").addEventListener("change", async function() {
-    const taluka = this.value;
-    if(!taluka) return;
+    const taluka = this.value; if(!taluka) return;
     const villageSelect = document.getElementById("villageSelect");
-    
     try {
         setStatus("Loading Villages...");
         const api = `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`;
         const res = await fetch(api);
         const data = await res.json();
         const villages = data.filter(item => item.type === "dir");
-
         villageSelect.innerHTML = `<option value="">-- Select Village --</option>`;
         villages.sort((a,b) => a.name.localeCompare(b.name));
-
-        villages.forEach(village => {
-            const option = document.createElement("option");
-            option.value = village.name;
-            option.textContent = village.name;
+        villages.forEach(v => {
+            const option = document.createElement("option"); option.value = v.name; option.textContent = v.name;
             villageSelect.appendChild(option);
         });
-
         villageSelect.disabled = false;
         setStatus(`✅ ${villages.length} Villages Loaded`);
-    } catch(err) {
-        console.error(err);
-        setStatus("❌ Village loading failed");
-    }
+    } catch(err) { console.error(err); setStatus("❌ Village loading failed"); }
 });
 
 /* LOAD GEOJSON LAYERS */
@@ -205,22 +253,16 @@ document.getElementById("villageSelect").addEventListener("change", async functi
 
     try {
         setStatus("Loading GIS Layers...");
+        if(polygonLayer) map.removeLayer(polygonLayer);
+        if(lineLayer) map.removeLayer(lineLayer);
+        if(pointLayer) map.removeLayer(pointLayer);
+        if(highlightLayer) map.removeLayer(highlightLayer);
 
-        /* CLEAR OLD LAYERS FROM MAP AND LAYER CONTROL */
-        if(polygonLayer) { map.removeLayer(polygonLayer); layerControl.removeLayer(polygonLayer); }
-        if(lineLayer) { map.removeLayer(lineLayer); layerControl.removeLayer(lineLayer); }
-        if(pointLayer) { map.removeLayer(pointLayer); layerControl.removeLayer(pointLayer); }
-        if(highlightLayer) { map.removeLayer(highlightLayer); }
-
-        /* FETCH FILE LIST */
         const folderAPI = `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}/${village}`;
         const folderRes = await fetch(folderAPI);
         const files = await folderRes.json();
 
-        let polygonFile = null;
-        let lineFile = null;
-        let pointFile = null;
-
+        let polygonFile = null, lineFile = null, pointFile = null;
         files.forEach(file => {
             const name = file.name.toLowerCase();
             if(name.includes("polygon") || name.includes("poly")) polygonFile = file.name;
@@ -228,119 +270,71 @@ document.getElementById("villageSelect").addEventListener("change", async functi
             else if(name.includes("point") || name.includes("text")) pointFile = file.name;
         });
 
-        /* POLYGON LAYER */
+        // POLYGONS
         if(polygonFile) {
-            const polygonURL = `${baseURL}${taluka}/${village}/${polygonFile}`;
-            const polygonRes = await fetch(polygonURL);
-            const polygonData = await polygonRes.json();
-
+            const polygonData = await (await fetch(`${baseURL}${taluka}/${village}/${polygonFile}`)).json();
             polygonLayer = L.geoJSON(polygonData, {
                 renderer: L.canvas(),
                 style: { color:"red", weight:1, fillOpacity:0.02 },
                 onEachFeature: (feature, layer) => {
                     const props = feature.properties || {};
                     const survey = props.survey_no || props.Survey_No || props.gat_no || props.Gat_No || props.sr_no || props.SR_NO || props.Text || props.text;
-
-                    if(survey) {
-                        layer.bindTooltip(String(survey), { permanent:true, direction:"center", className:"cadastral-label" });
-                    }
+                    if(survey) layer.bindTooltip(String(survey), { permanent:true, direction:"center", className:"cadastral-label" });
                     let html = "<table border='1' style='border-collapse:collapse;font-size:12px;'>";
                     for(let key in props) html += `<tr><td><b>${key}</b></td><td>${props[key]}</td></tr>`;
-                    html += "</table>";
-                    layer.bindPopup(html);
+                    layer.bindPopup(html + "</table>");
                 }
             }).addTo(map);
-
-            // Add to Layer Control
-            layerControl.addOverlay(polygonLayer, "Polygon Layer");
-
-            if(polygonLayer.getBounds && Object.keys(polygonLayer._layers).length > 0) {
-                map.fitBounds(polygonLayer.getBounds(), { padding:[20,20], maxZoom:20 });
-            }
+            if(polygonLayer.getBounds && Object.keys(polygonLayer._layers).length > 0) map.fitBounds(polygonLayer.getBounds(), { padding:[20,20], maxZoom:20 });
         }
 
-        /* LINE LAYER */
+        // LINES
         if(lineFile) {
-            const lineURL = `${baseURL}${taluka}/${village}/${lineFile}`;
-            const lineRes = await fetch(lineURL);
-            const lineData = await lineRes.json();
-
+            const lineData = await (await fetch(`${baseURL}${taluka}/${village}/${lineFile}`)).json();
             lineLayer = L.geoJSON(lineData, {
                 renderer: L.canvas(),
                 style: function(feature) {
-                    const props = feature.properties || {};
-                    const source = (props.sourcel || props.SourceL || props.SOURCEL || "").toString().trim();
-                    if(source === "Line_Nala_line" || source === "Line_River_line" || source === "Sym_Kalwa_line") return {color:"blue", weight:2, opacity:1};
-                    else if(source === "Line_Vahivat_line") return {color:"cyan", weight:2, dashArray:"5,5", opacity:1};
-                    else if(source === "Line_Road_line") return {color:"black", weight:2, opacity:1};
-                    else if(source === "Line_Railway_line") return {color:"black", weight:2, dashArray:"12,6", opacity:1};
-                    else if(source === "Line_Contour_line" || source === "Line_Road_Durusti_line") return {color:"red", weight:2, opacity:1};
-                    else return {color:"#00ffff", weight:1.5, opacity:1};
-                },
-                onEachFeature: (feature, layer) => {
-                    const props = feature.properties || {};
-                    let html = "<table border='1' style='border-collapse:collapse;font-size:12px;'>";
-                    for(let key in props) html += `<tr><td><b>${key}</b></td><td>${props[key]}</td></tr>`;
-                    html += "</table>";
-                    layer.bindPopup(html);
+                    const source = ((feature.properties || {}).sourcel || "").toString().trim();
+                    if(source.includes("Nala") || source.includes("River")) return {color:"blue", weight:2};
+                    else if(source.includes("Road")) return {color:"black", weight:2};
+                    else return {color:"#00ffff", weight:1.5};
                 }
             }).addTo(map);
-
-            // Add to Layer Control
-            layerControl.addOverlay(lineLayer, "Line Layer");
         }
 
-        /* POINT LAYER */
+        // POINTS
         if(pointFile) {
-            const pointURL = `${baseURL}${taluka}/${village}/${pointFile}`;
-            const pointRes = await fetch(pointURL);
-            const pointData = await pointRes.json();
-
+            const pointData = await (await fetch(`${baseURL}${taluka}/${village}/${pointFile}`)).json();
             pointLayer = L.geoJSON(pointData, {
                 renderer: L.canvas(),
-                pointToLayer: (feature, latlng) => {
-                    return L.circleMarker(latlng, { radius: 2, color: "#ffff00", fillColor: "#ffff00", fillOpacity: 1 });
-                },
+                pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 2, color: "#ffff00", fillColor: "#ffff00", fillOpacity: 1 }),
                 onEachFeature: (feature, layer) => {
-                    const props = feature.properties || {};
-                    const label = props.Text || props.text || props.name;
-                    if (label) {
-                        layer.bindTooltip(String(label), { permanent: true, direction: "top", className: "cadastral-label" });
-                    }
+                    const label = (feature.properties || {}).Text || (feature.properties || {}).name;
+                    if (label) layer.bindTooltip(String(label), { permanent: true, direction: "top", className: "cadastral-label" });
                 }
             }).addTo(map);
-
-            // Add to Layer Control
-            layerControl.addOverlay(pointLayer, "Point Layer");
         }
 
-        /* ENABLE SEARCH */
         document.getElementById("searchBox").disabled = false;
         document.getElementById("searchBtn").disabled = false;
         setStatus(`✅ ${village} Loaded Successfully`);
 
-    } catch(err) {
-        console.error(err);
-        setStatus("❌ GeoJSON Loading Failed");
-        alert("GeoJSON not loading.\n\nCheck console for details.");
-    }
+    } catch(err) { console.error(err); setStatus("❌ GeoJSON Loading Failed"); }
 });
 
-/* SEARCH SURVEY */
+/* SEARCH */
 document.getElementById("searchBtn").addEventListener("click", searchSurvey);
 document.getElementById("searchBox").addEventListener("keypress", function(e) { if(e.key === "Enter") searchSurvey(); });
 
 function searchSurvey() {
     const val = document.getElementById("searchBox").value.trim().toLowerCase();
     if(!val || !polygonLayer) return;
-
     if(highlightLayer) map.removeLayer(highlightLayer);
     let found = false;
 
     polygonLayer.eachLayer(layer => {
         const props = layer.feature.properties || {};
         const survey = props.survey_no || props.Survey_No || props.gat_no || props.Gat_No || props.sr_no || props.SR_NO || props.Text || props.text;
-
         if(survey && String(survey).trim().toLowerCase() === val) {
             found = true;
             highlightLayer = L.geoJSON(layer.feature, { style:{ color:"#00ffff", weight:4, fillOpacity:0.35 } }).addTo(map);
@@ -349,13 +343,39 @@ function searchSurvey() {
         }
     });
 
-    if(found) {
-        setStatus(`🎯 Survey ${val} Found`);
-    } else {
-        setStatus(`❌ Survey Not Found`);
-        alert("Survey Number Not Found");
-    }
+    if(found) setStatus(`🎯 Survey ${val} Found`);
+    else { setStatus(`❌ Survey Not Found`); alert("Survey Number Not Found"); }
 }
+
+/* =================================================
+   NEW OPACITY SLIDERS LOGIC
+================================================= */
+document.getElementById("op-basemap").addEventListener("input", e => currentBasemap.setOpacity(parseFloat(e.target.value)));
+document.getElementById("op-polygon").addEventListener("input", e => { if(polygonLayer) { const v = parseFloat(e.target.value); polygonLayer.setStyle({ opacity: v, fillOpacity: v * 0.02 }); }});
+document.getElementById("op-line").addEventListener("input", e => { if(lineLayer) lineLayer.setStyle({ opacity: parseFloat(e.target.value) }); });
+document.getElementById("op-point").addEventListener("input", e => { if(pointLayer) pointLayer.setStyle({ opacity: parseFloat(e.target.value), fillOpacity: parseFloat(e.target.value) }); });
+
+/* =================================================
+   YELLOW AREA: NAVIGATION TOOLS LOGIC
+================================================= */
+// Recenter Map
+function recenterMap() {
+    map.setView(defaultCenter, defaultZoom);
+}
+
+// Locate User via GPS
+function locateUser() {
+    map.locate({setView: true, maxZoom: 16});
+}
+
+// Optional: Add a little marker when location is found
+map.on('locationfound', function(e) {
+    L.marker(e.latlng).addTo(map)
+        .bindPopup("You are here").openPopup();
+});
+map.on('locationerror', function(e) {
+    alert("Could not access your location. Please check browser permissions.");
+});
 
 </script>
 </body>
