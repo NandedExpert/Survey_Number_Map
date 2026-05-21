@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nanded Survey Number Georeferencing</title>
 
-<!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css"/>
 
-<!-- LIBRARIES -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
 
 <style>
@@ -110,7 +108,6 @@ body{
     flex-direction:column;
     z-index:3000;
     box-shadow:2px 0 10px rgba(0,0,0,0.5);
-
     transition:0.3s ease;
 }
 
@@ -119,42 +116,32 @@ body{
     margin-left:-340px;
 }
 
-/* Update the existing sidebar h2 rule */
 #sidebar h2 {
     text-align: center;
     margin-bottom: 20px;
-    margin-top: 50px; /* <--- ADD THIS to push text below hamburger */
+    margin-top: 50px; 
     color: #38bdf8;
 }
 
-/* ADD THIS anywhere in your CSS to push zoom controls down */
 .leaflet-top.leaflet-left {
     margin-top: 60px; 
     margin-left: 10px;
 }
-/* SIDEBAR TOGGLE */
 
+/* SIDEBAR TOGGLE */
 #sidebarToggle{
     position:absolute;
     top:15px;
     left:15px;
-
     z-index:4000;
-
     width:44px;
     height:44px;
-
     border:none;
     border-radius:6px;
-
     background:rgba(15,23,42,0.95);
-
     color:#38bdf8;
-
     font-size:24px;
-
     cursor:pointer;
-
     box-shadow:0 4px 10px rgba(0,0,0,0.4);
 }
 
@@ -162,6 +149,7 @@ body{
     background:#0284c7;
     color:white;
 }
+
 label{
     font-size:13px;
     font-weight:600;
@@ -326,23 +314,17 @@ input{
         -1px 1px 0 black,
         1px 1px 0 black;
 }
-    /* MOBILE VIEW */
 
+/* MOBILE VIEW */
 @media(max-width:768px){
-
     #sidebar{
-
         position:absolute;
-
         height:100%;
-
         left:0;
         top:0;
-
     }
 
     #sidebar.collapsed{
-
         margin-left:-340px;
     }
 
@@ -350,61 +332,41 @@ input{
         width:100%;
     }
 
-    /* MOVE CONTROLS UP */
-
     .leaflet-bottom.leaflet-right{
-
         bottom:70px !important;
-
     }
 
     .leaflet-control-zoom{
-
         margin-top:60px !important;
     }
 
     #coords-display{
-
         font-size:10px;
         padding:3px 8px;
     }
-
 }
 </style>
 </head>
 
 <body>
 <button id="sidebarToggle">☰</button>
-<!-- LOADING -->
+
 <div id="loadingOverlay">
     <div class="spinner"></div>
     <div>Processing GIS Data...</div>
 </div>
 
-<!-- LOGIN -->
 <div id="loginOverlay">
     <div class="loginCard">
-
         <h2>Nanded Survey Georeferencing</h2>
-
-        <input type="text"
-               id="username"
-               placeholder="Username">
-
-        <input type="password"
-               id="password"
-               placeholder="Password">
-
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
-
         <div id="loginError"></div>
-
     </div>
 </div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
-
     <h2>Survey Number Maps</h2>
 
     <label>Select Taluka</label>
@@ -418,116 +380,39 @@ input{
     </select>
 
     <label>Search Survey Number</label>
-    <input type="text"
-           id="searchBox"
-           placeholder="Enter Survey No"
-           disabled>
+    <input type="text" id="searchBox" placeholder="Enter Survey No" disabled>
 
-    <button id="searchBtn"
-            class="primary-btn"
-            disabled>
+    <button id="searchBtn" class="primary-btn" disabled>Search Survey</button>
 
-        Search Survey
-
-    </button>
-
-    <!-- DOWNLOAD -->
     <div style="margin-top:15px;">
-
-        <button class="primary-btn"
-                onclick="toggleDownloadMenu()">
-
-            Download Data ⬇️
-
-        </button>
-
-        <div id="downloadMenu"
-             class="download-menu">
-
-            <button class="download-btn dxf-btn"
-                    onclick="downloadDXF()">
-
-                Download DXF
-
-            </button>
-
-            <button class="download-btn kml-btn"
-                    onclick="downloadKML()">
-
-                Download KML
-
-            </button>
-
+        <button class="primary-btn" onclick="toggleDownloadMenu()">Download Data ⬇️</button>
+        <div id="downloadMenu" class="download-menu">
+            <button class="download-btn dxf-btn" onclick="downloadDXF()">Download DXF</button>
+            <button class="download-btn kml-btn" onclick="downloadKML()">Download KML</button>
         </div>
-
     </div>
 
     <div id="status">Ready...</div>
-
 </div>
 
-<!-- MAP -->
 <div id="map-wrapper">
-
     <div id="map"></div>
+    <div id="coords-display">Lat: 0.00000, Lng: 0.00000</div>
 
-    <div id="coords-display">
-        Lat: 0.00000, Lng: 0.00000
-    </div>
-
-    <!-- LAYER PANEL -->
     <div id="layer-panel-wrapper">
-
-        <button id="layer-toggle-btn">
-            ☰
-        </button>
-
-        <div id="right-layer-panel"
-             class="map-panel">
-
+        <button id="layer-toggle-btn">☰</button>
+        <div id="right-layer-panel" class="map-panel">
             <h3>Basemap</h3>
-
-            <div class="radio-group"
-                 id="basemap-toggles">
-
-                <label>
-                    <input type="radio"
-                           name="basemap"
-                           value="hybrid"
-                           checked>
-                    Google Hybrid
-                </label>
-
-                <label>
-                    <input type="radio"
-                           name="basemap"
-                           value="satellite">
-                    Google Satellite
-                </label>
-
-                <label>
-                    <input type="radio"
-                           name="basemap"
-                           value="road">
-                    Google Road
-                </label>
-
-                <label>
-                    <input type="radio"
-                           name="basemap"
-                           value="osm">
-                    OSM
-                </label>
-
+            <div class="radio-group" id="basemap-toggles">
+                <label><input type="radio" name="basemap" value="hybrid" checked> Google Hybrid</label>
+                <label><input type="radio" name="basemap" value="satellite"> Google Satellite</label>
+                <label><input type="radio" name="basemap" value="road"> Google Road</label>
+                <label><input type="radio" name="basemap" value="osm"> OSM</label>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-<!-- SCRIPTS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
 
@@ -538,26 +423,15 @@ const sidebarToggle = document.getElementById("sidebarToggle");
 
 sidebarToggle.addEventListener("click", () => {
     sidebar.classList.toggle("collapsed");
-
-/* ADD THIS: Tells Leaflet to recalculate map size after sidebar transition */
     setTimeout(() => {
         map.invalidateSize();
-    }, 300); /* 300ms matches the 0.3s transition in your CSS */
+    }, 300);
 });
-});
+
 /* USERS */
 const users = {
-
-    "Admin":{
-        password:"Admin@321",
-        access:"ALL"
-    },
-
-    "Nanded_district":{
-        password:"Nanded@123",
-        access:"ALL"
-    }
-
+    "Admin": { password: "Admin@321", access: "ALL" },
+    "Nanded_district": { password: "Nanded@123", access: "ALL" }
 };
 
 /* FIX MAP JUMP */
@@ -570,105 +444,70 @@ const map = L.map('map',{
     doubleClickZoom:false
 }).setView([19.16,77.31],10);
 
-L.control.zoom({
-    position:'topleft'
-}).addTo(map);
-
-L.control.scale({
-    imperial:false,
-    metric:true,
-    position:'bottomleft'
-}).addTo(map);
+L.control.zoom({ position:'topleft' }).addTo(map);
+L.control.scale({ imperial:false, metric:true, position:'bottomleft' }).addTo(map);
 
 /* MEASURE */
-const measureControl =
-new L.Control.Measure({
+const measureControl = new L.Control.Measure({
     position:'bottomright',
     primaryLengthUnit:'meters',
     secondaryLengthUnit:'kilometers',
     primaryAreaUnit:'sqmeters',
     secondaryAreaUnit:'hectares'
 });
-
 measureControl.addTo(map);
 
 /* BASEMAPS */
 const basemaps = {
-
-    hybrid:L.tileLayer(
-        'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-        {maxZoom:22}
-    ).addTo(map),
-
-    satellite:L.tileLayer(
-        'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-        {maxZoom:22}
-    ),
-
-    road:L.tileLayer(
-        'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-        {maxZoom:22}
-    ),
-
-    osm:L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {maxZoom:19}
-    )
-
+    hybrid: L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {maxZoom:22}).addTo(map),
+    satellite: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {maxZoom:22}),
+    road: L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {maxZoom:22}),
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19})
 };
 
 let currentBasemap = basemaps.hybrid;
 
 /* BASEMAP SWITCH */
-document.getElementById("basemap-toggles")
-.addEventListener("change",function(e){
-
+document.getElementById("basemap-toggles").addEventListener("change", function(e){
     if(e.target.name === "basemap"){
-
         map.removeLayer(currentBasemap);
-
-        currentBasemap =
-        basemaps[e.target.value];
-
+        currentBasemap = basemaps[e.target.value];
         map.addLayer(currentBasemap);
-
     }
-
 });
 
 /* PANEL */
-document.getElementById("layer-toggle-btn")
-.addEventListener("click",function(){
-
-    document.getElementById("right-layer-panel")
-    .classList.toggle("active");
-
+document.getElementById("layer-toggle-btn").addEventListener("click", function(){
+    document.getElementById("right-layer-panel").classList.toggle("active");
 });
 
 /* COORDS */
-map.on("mousemove",function(e){
-
-    document.getElementById("coords-display")
-    .innerHTML =
+map.on("mousemove", function(e){
+    document.getElementById("coords-display").innerHTML =
     `Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}`;
-
 });
 
-/* GLOBALS */
+/* GLOBALS & URL CONFIGURATION */
 let polygonLayer = null;
 let lineLayer = null;
 let pointLayer = null;
 let highlightLayer = null;
 let activeUser = null;
 
-const githubUser =
-window.location.hostname.split('.')[0];
+let githubUser = "";
+let repoName = "";
+let baseURL = "";
 
-const repoName =
-window.location.pathname.split('/')[1];
-
-const baseURL =
-window.location.origin + "/" + repoName + "/";
+// Robust check: Fall back safely if opened directly from local machine
+if (window.location.hostname === "localhost" || window.location.protocol === "file:") {
+    githubUser = "YOUR_GITHUB_USERNAME";  // Replace with your real GitHub account name
+    repoName = "YOUR_REPO_NAME";          // Replace with your repository folder name
+    baseURL = `https://raw.githubusercontent.com/${githubUser}/${repoName}/main/`;
+} else {
+    githubUser = window.location.hostname.split('.')[0];
+    repoName = window.location.pathname.split('/')[1];
+    baseURL = window.location.origin + "/" + repoName + "/";
+}
 
 /* STATUS */
 function setStatus(msg){
@@ -685,152 +524,89 @@ function hideLoading(){
 
 /* LOGIN */
 function login(){
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-    const username =
-    document.getElementById("username").value.trim();
-
-    const password =
-    document.getElementById("password").value.trim();
-
-    if(users[username] &&
-       users[username].password === password){
-
+    if(users[username] && users[username].password === password){
         activeUser = users[username];
-
-        document.getElementById("loginOverlay")
-        .style.display = "none";
-
+        document.getElementById("loginOverlay").style.display = "none";
         loadTalukas();
-
-    }else{
-
-        document.getElementById("loginError")
-        .innerHTML = "Invalid Login";
-
+    } else {
+        document.getElementById("loginError").innerHTML = "Invalid Login";
     }
-
 }
 
 /* LOAD TALUKAS */
 async function loadTalukas(){
-
     try{
-
         setStatus("Loading Talukas...");
-
-        const res = await fetch(
-            `https://api.github.com/repos/${githubUser}/${repoName}/contents`
-        );
-
+        const res = await fetch(`https://api.github.com/repos/${githubUser}/${repoName}/contents`);
         const data = await res.json();
+        
+        if (data.message && data.message.includes("Not Found")) {
+            throw new Error("Repository not found. Check local config credentials.");
+        }
 
-        const talukas =
-        data.filter(item => item.type === "dir");
+        const talukas = data.filter(item => item.type === "dir");
+        const select = document.getElementById("talukaSelect");
 
-        const select =
-        document.getElementById("talukaSelect");
-
-        select.innerHTML =
-        `<option value="">-- Select Taluka --</option>`;
-
+        select.innerHTML = `<option value="">-- Select Taluka --</option>`;
         talukas.forEach(item=>{
-
-            const option =
-            document.createElement("option");
-
+            const option = document.createElement("option");
             option.value = item.name;
             option.textContent = item.name;
-
             select.appendChild(option);
-
         });
 
         select.disabled = false;
-
         setStatus("✅ Talukas Loaded");
-
     }catch(err){
-
         console.error(err);
-
-        setStatus("❌ Taluka Load Failed");
-
+        setStatus("❌ Taluka Load Failed: " + err.message);
     }
-
 }
 
 /* LOAD VILLAGES */
-document.getElementById("talukaSelect")
-.addEventListener("change",async function(){
-
+document.getElementById("talukaSelect").addEventListener("change", async function(){
     const taluka = this.value;
-
     if(!taluka) return;
 
     try{
-
-        const res = await fetch(
-            `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`
-        );
-
+        const res = await fetch(`https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`);
         const data = await res.json();
+        const villages = data.filter(item => item.type === "dir");
+        const select = document.getElementById("villageSelect");
 
-        const villages =
-        data.filter(item => item.type === "dir");
-
-        const select =
-        document.getElementById("villageSelect");
-
-        select.innerHTML =
-        `<option value="">-- Select Village --</option>`;
-
+        select.innerHTML = `<option value="">-- Select Village --</option>`;
         villages.forEach(v=>{
-
-            const option =
-            document.createElement("option");
-
+            const option = document.createElement("option");
             option.value = v.name;
             option.textContent = v.name;
-
             select.appendChild(option);
-
         });
 
         select.disabled = false;
-
         setStatus("✅ Villages Loaded");
-
     }catch(err){
-
         console.error(err);
-
+        setStatus("❌ Village Load Failed");
     }
-
 });
 
 /* LOAD GIS */
-document.getElementById("villageSelect")
-.addEventListener("change",async function(){
-
-    const taluka =
-    document.getElementById("talukaSelect").value;
-
+document.getElementById("villageSelect").addEventListener("change", async function(){
+    const taluka = document.getElementById("talukaSelect").value;
     const village = this.value;
-
     if(!village) return;
 
     try{
-
         showLoading();
 
         if(polygonLayer) map.removeLayer(polygonLayer);
         if(lineLayer) map.removeLayer(lineLayer);
         if(pointLayer) map.removeLayer(pointLayer);
 
-        const res = await fetch(
-            `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}/${village}`
-        );
-
+        const res = await fetch(`https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}/${village}`);
         const files = await res.json();
 
         let polygonFile = null;
@@ -838,497 +614,200 @@ document.getElementById("villageSelect")
         let pointFile = null;
 
         files.forEach(file=>{
-
-            const name =
-            file.name.toLowerCase();
-
-            if(name.includes("polygon") ||
-               name.includes("poly"))
-                polygonFile = file.name;
-
-            else if(name.includes("line"))
-                lineFile = file.name;
-
-            else if(name.includes("point") ||
-                    name.includes("text"))
-                pointFile = file.name;
-
+            const name = file.name.toLowerCase();
+            if(name.includes("polygon") || name.includes("poly")) polygonFile = file.name;
+            else if(name.includes("line")) lineFile = file.name;
+            else if(name.includes("point") || name.includes("text")) pointFile = file.name;
         });
 
         /* POLYGON */
         if(polygonFile){
+            const polygonData = await (await fetch(`${baseURL}${taluka}/${village}/${polygonFile}`)).json();
 
-            const polygonData =
-            await (
-                await fetch(
-                    `${baseURL}${taluka}/${village}/${polygonFile}`
-                )
-            ).json();
-
-            polygonLayer =
-            L.geoJSON(polygonData,{
-
+            polygonLayer = L.geoJSON(polygonData,{
                 renderer:L.canvas(),
-
                 style:{
                     color:"red",
                     weight:1,
                     fillOpacity:0.02
                 },
-
                 onEachFeature:(feature,layer)=>{
-
-                    const props =
-                    feature.properties || {};
-
-                    const survey =
-                        props.survey_no ||
-                        props.Survey_No ||
-                        props.gat_no ||
-                        props.Gat_No ||
-                        props.sr_no ||
-                        props.SR_NO ||
-                        props.Text;
+                    const props = feature.properties || {};
+                    const survey = props.survey_no || props.Survey_No || props.gat_no || props.Gat_No || props.sr_no || props.SR_NO || props.Text;
 
                     if(survey){
-
-                        layer.bindTooltip(
-                            String(survey),
-                            {
-                                permanent:true,
-                                direction:"center",
-                                className:"cadastral-label"
-                            }
-                        );
-
+                        layer.bindTooltip(String(survey), {
+                            permanent:true,
+                            direction:"center",
+                            className:"cadastral-label"
+                        });
                     }
-
                 }
-
             }).addTo(map);
 
-            map.fitBounds(
-                polygonLayer.getBounds(),
-                {
-                    padding:[20,20],
-                    maxZoom:20
-                }
-            );
-
+            map.fitBounds(polygonLayer.getBounds(), { padding:[20,20], maxZoom:20 });
         }
 
         /* LINE */
         if(lineFile){
+            const lineData = await (await fetch(`${baseURL}${taluka}/${village}/${lineFile}`)).json();
 
-            const lineData =
-            await (
-                await fetch(
-                    `${baseURL}${taluka}/${village}/${lineFile}`
-                )
-            ).json();
-
-            lineLayer =
-            L.geoJSON(lineData,{
-
+            lineLayer = L.geoJSON(lineData,{
                 renderer:L.canvas(),
-
                 style:function(feature){
-
-                    const source =
-                    ((feature.properties || {}).sourcel || "")
-                    .toString();
-
-                    if(source.includes("Road"))
-                        return {
-                            color:"black",
-                            weight:2
-                        };
-
-                    if(source.includes("River") ||
-                       source.includes("Nala"))
-                        return {
-                            color:"blue",
-                            weight:2
-                        };
-
-                    return {
-                        color:"#00ffff",
-                        weight:1.5
-                    };
-
+                    const source = ((feature.properties || {}).sourcel || "").toString();
+                    if(source.includes("Road")) return { color:"black", weight:2 };
+                    if(source.includes("River") || source.includes("Nala")) return { color:"blue", weight:2 };
+                    return { color:"#00ffff", weight:1.5 };
                 }
-
             }).addTo(map);
-
         }
 
         /* POINT */
         if(pointFile){
+            const pointData = await (await fetch(`${baseURL}${taluka}/${village}/${pointFile}`)).json();
 
-            const pointData =
-            await (
-                await fetch(
-                    `${baseURL}${taluka}/${village}/${pointFile}`
-                )
-            ).json();
-
-            pointLayer =
-            L.geoJSON(pointData,{
-
+            pointLayer = L.geoJSON(pointData,{
                 renderer:L.canvas(),
-
-                pointToLayer:(feature,latlng)=>
-
-                    L.circleMarker(latlng,{
-                        radius:0,
-                        opacity:0,
-                        fillOpacity:0
-                    }),
-
+                pointToLayer:(feature,latlng)=> L.circleMarker(latlng,{ radius:0, opacity:0, fillOpacity:0 }),
                 onEachFeature:(feature,layer)=>{
-
-                    const label =
-                    feature.properties.Text ||
-                    feature.properties.name;
-
+                    const label = feature.properties.Text || feature.properties.name;
                     if(label){
-
-                        layer.bindTooltip(
-                            String(label),
-                            {
-                                permanent:true,
-                                direction:"top",
-                                className:"cadastral-label"
-                            }
-                        );
-
+                        layer.bindTooltip(String(label), {
+                            permanent:true,
+                            direction:"top",
+                            className:"cadastral-label"
+                        });
                     }
-
                 }
-
             }).addTo(map);
-
         }
 
         document.getElementById("searchBox").disabled=false;
         document.getElementById("searchBtn").disabled=false;
-
         setStatus("✅ GIS Loaded");
-
     }catch(err){
-
         console.error(err);
-
         setStatus("❌ GIS Loading Failed");
-
     }finally{
-
         hideLoading();
-
     }
-
 });
 
 /* SEARCH */
-document.getElementById("searchBtn")
-.addEventListener("click",searchSurvey);
+document.getElementById("searchBtn").addEventListener("click",searchSurvey);
 
 function searchSurvey(){
-
-    const val =
-    document.getElementById("searchBox")
-    .value
-    .trim()
-    .toLowerCase();
-
+    const val = document.getElementById("searchBox").value.trim().toLowerCase();
     if(!val || !polygonLayer) return;
 
-    if(highlightLayer)
-        map.removeLayer(highlightLayer);
+    if(highlightLayer) map.removeLayer(highlightLayer);
 
     polygonLayer.eachLayer(layer=>{
+        const props = layer.feature.properties || {};
+        const survey = props.survey_no || props.Survey_No || props.gat_no || props.Gat_No || props.sr_no || props.SR_NO;
 
-        const props =
-        layer.feature.properties || {};
-
-        const survey =
-            props.survey_no ||
-            props.Survey_No ||
-            props.gat_no ||
-            props.Gat_No ||
-            props.sr_no ||
-            props.SR_NO;
-
-        if(survey &&
-           String(survey).trim().toLowerCase() === val){
-
-            highlightLayer =
-            L.geoJSON(layer.feature,{
-                style:{
-                    color:"#00ffff",
-                    weight:4,
-                    fillOpacity:0.35
-                }
+        if(survey && String(survey).trim().toLowerCase() === val){
+            highlightLayer = L.geoJSON(layer.feature,{
+                style:{ color:"#00ffff", weight:4, fillOpacity:0.35 }
             }).addTo(map);
 
-            map.fitBounds(
-                layer.getBounds(),
-                {
-                    maxZoom:20,
-                    padding:[40,40]
-                }
-            );
-
+            map.fitBounds(layer.getBounds(), { maxZoom:20, padding:[40,40] });
         }
-
     });
-
 }
 
 /* DOWNLOAD MENU */
 function toggleDownloadMenu(){
-
-    const menu =
-    document.getElementById("downloadMenu");
-
-    menu.style.display =
-    menu.style.display === "block"
-    ? "none"
-    : "block";
-
+    const menu = document.getElementById("downloadMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 
 /* PROJECTION */
-proj4.defs(
-    "EPSG:32643",
-    "+proj=utm +zone=43 +datum=WGS84 +units=m +no_defs"
-);
+proj4.defs("EPSG:32643", "+proj=utm +zone=43 +datum=WGS84 +units=m +no_defs");
 
 /* DXF */
 function downloadDXF(){
-
     if(!polygonLayer){
-
         alert("No polygon loaded");
-
         return;
     }
 
-    let dxf = `
-0
-SECTION
-2
-ENTITIES
-`;
+    let dxf = `\n0\nSECTION\n2\nENTITIES\n`;
 
     polygonLayer.eachLayer(layer=>{
-
-        const geom =
-        layer.feature.geometry;
-
+        const geom = layer.feature.geometry;
         if(geom.type === "Polygon"){
-
-            geom.coordinates.forEach(ring=>{
-
-                dxf += buildDXFPolyline(ring);
-
-            });
-
-        }
-
-        else if(geom.type === "MultiPolygon"){
-
+            geom.coordinates.forEach(ring=>{ dxf += buildDXFPolyline(ring); });
+        } else if(geom.type === "MultiPolygon"){
             geom.coordinates.forEach(poly=>{
-
-                poly.forEach(ring=>{
-
-                    dxf += buildDXFPolyline(ring);
-
-                });
-
+                poly.forEach(ring=>{ dxf += buildDXFPolyline(ring); });
             });
-
         }
-
     });
 
-    dxf += `
-0
-ENDSEC
-0
-EOF
-`;
+    dxf += `\n0\nENDSEC\n0\nEOF\n`;
 
-    const blob =
-    new Blob([dxf],{
-        type:'application/dxf'
-    });
-
-    const link =
-    document.createElement("a");
-
-    link.href =
-    URL.createObjectURL(blob);
-
-    link.download =
-    "survey_data.dxf";
-
+    const blob = new Blob([dxf],{ type:'application/dxf' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "survey_data.dxf";
     link.click();
-
 }
 
 /* BUILD DXF */
 function buildDXFPolyline(ring){
-
-    let output = `
-0
-POLYLINE
-8
-0
-66
-1
-70
-1
-`;
+    let output = `\n0\nPOLYLINE\n8\n0\n66\n1\n70\n1\n`;
 
     ring.forEach(coord=>{
-
-        const p =
-        proj4(
-            "EPSG:4326",
-            "EPSG:32643",
-            [coord[0],coord[1]]
-        );
-
-        output += `
-0
-VERTEX
-8
-0
-10
-${p[0]}
-20
-${p[1]}
-30
-0
-`;
-
+        const p = proj4("EPSG:4326", "EPSG:32643", [coord[0],coord[1]]);
+        output += `\n0\nVERTEX\n8\n0\n10\n${p[0]}\n20\n${p[1]}\n30\n0\n`;
     });
 
-    output += `
-0
-SEQEND
-`;
-
+    output += `\n0\nSEQEND\n`;
     return output;
 }
 
 /* KML */
 function downloadKML(){
-
     if(!polygonLayer){
-
         alert("No polygon loaded");
-
         return;
     }
 
-    let kml = `<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>
-`;
+    let kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n`;
 
     polygonLayer.eachLayer(layer=>{
-
-        const geom =
-        layer.feature.geometry;
-
+        const geom = layer.feature.geometry;
         if(geom.type === "Polygon"){
-
-            kml += buildKMLPolygon(
-                geom.coordinates
-            );
-
+            kml += buildKMLPolygon(geom.coordinates);
+        } else if(geom.type === "MultiPolygon"){
+            geom.coordinates.forEach(poly=>{ kml += buildKMLPolygon(poly); });
         }
-
-        else if(geom.type === "MultiPolygon"){
-
-            geom.coordinates.forEach(poly=>{
-
-                kml += buildKMLPolygon(poly);
-
-            });
-
-        }
-
     });
 
-    kml += `
-</Document>
-</kml>
-`;
+    kml += `\n</Document>\n</kml>\n`;
 
-    const blob =
-    new Blob(
-        [kml],
-        {
-            type:'application/vnd.google-earth.kml+xml'
-        }
-    );
-
-    const link =
-    document.createElement("a");
-
-    link.href =
-    URL.createObjectURL(blob);
-
-    link.download =
-    "survey_data.kml";
-
+    const blob = new Blob([kml], { type:'application/vnd.google-earth.kml+xml' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "survey_data.kml";
     link.click();
-
 }
 
 /* BUILD KML */
 function buildKMLPolygon(coordsArray){
-
     const ring = coordsArray[0];
+    let output = `\n<Placemark>\n<Polygon>\n<tessellate>1</tessellate>\n<outerBoundaryIs>\n<LinearRing>\n<coordinates>\n`;
 
-    let output = `
-<Placemark>
-<Polygon>
-<tessellate>1</tessellate>
-<outerBoundaryIs>
-<LinearRing>
-<coordinates>
-`;
-
-    ring.forEach(coord=>{
-
-        output += `
-${coord[0]},${coord[1]},0
-`;
-
-    });
+    ring.forEach(coord=>{ output += `\n${coord[0]},${coord[1]},0\n`; });
 
     const first = ring[0];
-
-    output += `
-${first[0]},${first[1]},0
-`;
-
-    output += `
-</coordinates>
-</LinearRing>
-</outerBoundaryIs>
-</Polygon>
-</Placemark>
-`;
+    output += `\n${first[0]},${first[1]},0\n`;
+    output += `\n</coordinates>\n</LinearRing>\n</outerBoundaryIs>\n</Polygon>\n</Placemark>\n`;
 
     return output;
 }
-
 </script>
-
 </body>
 </html>
