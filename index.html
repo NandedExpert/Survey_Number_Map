@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nanded Survey Number Georeferencing</title>
 
-<!-- LIBRARIES -->
+<!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css"/>
 
+<!-- LIBRARIES -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dxf-writer@1.1.0/dist/dxf-writer.min.js"></script>
 
 <style>
 *{
@@ -77,10 +77,9 @@ body{
 
 /* LOADING */
 #loadingOverlay{
-    background:rgba(15,23,42,0.8);
-    flex-direction:column;
+    background:rgba(15,23,42,0.85);
     color:#38bdf8;
-    backdrop-filter:blur(3px);
+    flex-direction:column;
     display:none;
 }
 
@@ -120,8 +119,8 @@ body{
 label{
     font-size:13px;
     font-weight:600;
-    display:block;
     margin-top:10px;
+    display:block;
 }
 
 select,
@@ -162,7 +161,7 @@ input{
     line-height:1.5;
 }
 
-/* DOWNLOAD MENU */
+/* DOWNLOAD */
 .download-menu{
     display:none;
     background:#1e293b;
@@ -181,8 +180,8 @@ input{
     cursor:pointer;
     font-size:12px;
     font-weight:600;
-    text-align:left;
     color:white;
+    text-align:left;
 }
 
 .dxf-btn{
@@ -200,25 +199,20 @@ input{
 }
 
 #map{
-    height:100%;
     width:100%;
-    z-index:1;
+    height:100%;
 }
 
 .leaflet-container:focus{
     outline:none;
 }
 
-/* LAYER PANEL */
+/* PANEL */
 #layer-panel-wrapper{
     position:absolute;
     top:15px;
     right:15px;
     z-index:1000;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-end;
-    gap:10px;
 }
 
 #layer-toggle-btn{
@@ -229,29 +223,17 @@ input{
     border-radius:6px;
     color:white;
     cursor:pointer;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    box-shadow:0 4px 10px rgba(0,0,0,0.3);
-    backdrop-filter:blur(4px);
-}
-
-#layer-toggle-btn svg{
-    width:22px;
-    height:22px;
-    stroke:#38bdf8;
 }
 
 .map-panel{
     background:rgba(15,23,42,0.95);
     border:1px solid #334155;
     border-radius:8px;
-    color:white;
-    box-shadow:0 4px 15px rgba(0,0,0,0.5);
-    backdrop-filter:blur(4px);
     padding:15px;
     width:220px;
+    margin-top:10px;
     display:none;
+    color:white;
 }
 
 .map-panel.active{
@@ -259,36 +241,15 @@ input{
 }
 
 .map-panel h3{
-    font-size:13px;
     color:#38bdf8;
-    margin-bottom:12px;
-    border-bottom:1px solid #334155;
-    padding-bottom:4px;
-    text-transform:uppercase;
+    margin-bottom:10px;
+    font-size:13px;
 }
 
 .radio-group{
     display:flex;
     flex-direction:column;
-    gap:10px;
-}
-
-.radio-group div{
-    display:flex;
-    align-items:center;
     gap:8px;
-}
-
-.layer-row{
-    margin-top:10px;
-}
-
-.layer-row label{
-    margin:0 0 4px 0;
-}
-
-input[type="range"]{
-    width:100%;
 }
 
 /* COORDS */
@@ -302,10 +263,7 @@ input[type="range"]{
     padding:4px 12px;
     border-radius:20px;
     font-size:12px;
-    font-weight:bold;
     z-index:1000;
-    pointer-events:none;
-    border:1px solid #334155;
 }
 
 /* LABEL */
@@ -336,14 +294,21 @@ input[type="range"]{
 <!-- LOGIN -->
 <div id="loginOverlay">
     <div class="loginCard">
+
         <h2>Nanded Survey Georeferencing</h2>
 
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
+        <input type="text"
+               id="username"
+               placeholder="Username">
+
+        <input type="password"
+               id="password"
+               placeholder="Password">
 
         <button onclick="login()">Login</button>
 
         <div id="loginError"></div>
+
     </div>
 </div>
 
@@ -363,44 +328,48 @@ input[type="range"]{
     </select>
 
     <label>Search Survey Number</label>
-    <input type="text" id="searchBox" placeholder="Enter Survey No" disabled>
+    <input type="text"
+           id="searchBox"
+           placeholder="Enter Survey No"
+           disabled>
 
-    <button id="searchBtn" class="primary-btn" disabled>
+    <button id="searchBtn"
+            class="primary-btn"
+            disabled>
+
         Search Survey
+
     </button>
 
     <!-- DOWNLOAD -->
     <div style="margin-top:15px;">
 
-        <button id="downloadBtn"
-                class="primary-btn"
+        <button class="primary-btn"
                 onclick="toggleDownloadMenu()">
 
             Download Data ⬇️
 
         </button>
 
-        <div id="downloadMenu" class="download-menu">
+        <div id="downloadMenu"
+             class="download-menu">
 
             <button class="download-btn dxf-btn"
                     onclick="downloadDXF()">
 
-                Download DXF (AutoCAD)
+                Download DXF
 
             </button>
 
             <button class="download-btn kml-btn"
                     onclick="downloadKML()">
 
-                Download KML (Google Earth)
+                Download KML
 
             </button>
 
-            <p style="font-size:10px;color:#94a3b8;margin-top:8px;">
-                *AutoCAD exports in UTM meters
-            </p>
-
         </div>
+
     </div>
 
     <div id="status">Ready...</div>
@@ -420,91 +389,46 @@ input[type="range"]{
     <div id="layer-panel-wrapper">
 
         <button id="layer-toggle-btn">
-
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke-width="2"
-                 stroke-linecap="round"
-                 stroke-linejoin="round">
-
-                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                <polyline points="2 12 12 17 22 12"></polyline>
-                <polyline points="2 17 12 22 22 17"></polyline>
-
-            </svg>
-
+            ☰
         </button>
 
-        <div id="right-layer-panel" class="map-panel">
+        <div id="right-layer-panel"
+             class="map-panel">
 
             <h3>Basemap</h3>
 
-            <div class="radio-group" id="basemap-toggles">
+            <div class="radio-group"
+                 id="basemap-toggles">
 
-                <div>
-                    <input type="radio" name="basemap"
-                           value="hybrid" checked>
-                    <label>Google Hybrid</label>
-                </div>
+                <label>
+                    <input type="radio"
+                           name="basemap"
+                           value="hybrid"
+                           checked>
+                    Google Hybrid
+                </label>
 
-                <div>
-                    <input type="radio" name="basemap"
+                <label>
+                    <input type="radio"
+                           name="basemap"
                            value="satellite">
-                    <label>Google Satellite</label>
-                </div>
+                    Google Satellite
+                </label>
 
-                <div>
-                    <input type="radio" name="basemap"
+                <label>
+                    <input type="radio"
+                           name="basemap"
                            value="road">
-                    <label>Google Road</label>
-                </div>
+                    Google Road
+                </label>
 
-                <div>
-                    <input type="radio" name="basemap"
+                <label>
+                    <input type="radio"
+                           name="basemap"
                            value="osm">
-                    <label>OSM</label>
-                </div>
+                    OSM
+                </label>
 
-                <input type="range"
-                       id="op-basemap"
-                       min="0"
-                       max="1"
-                       step="0.1"
-                       value="1">
-
-            </div>
-
-            <h3>Layer Opacity</h3>
-
-            <div class="layer-row">
-                <label>Polygon Layer</label>
-                <input type="range"
-                       id="op-polygon"
-                       min="0"
-                       max="1"
-                       step="0.1"
-                       value="1">
-            </div>
-
-            <div class="layer-row">
-                <label>Line Layer</label>
-                <input type="range"
-                       id="op-line"
-                       min="0"
-                       max="1"
-                       step="0.1"
-                       value="1">
-            </div>
-
-            <div class="layer-row">
-                <label>Point Layer</label>
-                <input type="range"
-                       id="op-point"
-                       min="0"
-                       max="1"
-                       step="0.1"
-                       value="1">
             </div>
 
         </div>
@@ -521,14 +445,17 @@ input[type="range"]{
 
 /* USERS */
 const users = {
+
     "Admin":{
         password:"Admin@321",
         access:"ALL"
     },
+
     "Nanded_district":{
         password:"Nanded@123",
         access:"ALL"
     }
+
 };
 
 /* FIX MAP JUMP */
@@ -541,7 +468,9 @@ const map = L.map('map',{
     doubleClickZoom:false
 }).setView([19.16,77.31],10);
 
-L.control.zoom({position:'topleft'}).addTo(map);
+L.control.zoom({
+    position:'topleft'
+}).addTo(map);
 
 L.control.scale({
     imperial:false,
@@ -550,7 +479,8 @@ L.control.scale({
 }).addTo(map);
 
 /* MEASURE */
-const measureControl = new L.Control.Measure({
+const measureControl =
+new L.Control.Measure({
     position:'bottomright',
     primaryLengthUnit:'meters',
     secondaryLengthUnit:'kilometers',
@@ -582,28 +512,21 @@ const basemaps = {
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {maxZoom:19}
     )
+
 };
 
 let currentBasemap = basemaps.hybrid;
 
-/* PANEL */
-document.getElementById('layer-toggle-btn')
-.addEventListener('click',function(){
-
-    document.getElementById('right-layer-panel')
-    .classList.toggle('active');
-
-});
-
 /* BASEMAP SWITCH */
-document.getElementById('basemap-toggles')
-.addEventListener('change',function(e){
+document.getElementById("basemap-toggles")
+.addEventListener("change",function(e){
 
-    if(e.target.name === 'basemap'){
+    if(e.target.name === "basemap"){
 
         map.removeLayer(currentBasemap);
 
-        currentBasemap = basemaps[e.target.value];
+        currentBasemap =
+        basemaps[e.target.value];
 
         map.addLayer(currentBasemap);
 
@@ -611,10 +534,19 @@ document.getElementById('basemap-toggles')
 
 });
 
-/* COORDS */
-map.on('mousemove',function(e){
+/* PANEL */
+document.getElementById("layer-toggle-btn")
+.addEventListener("click",function(){
 
-    document.getElementById('coords-display')
+    document.getElementById("right-layer-panel")
+    .classList.toggle("active");
+
+});
+
+/* COORDS */
+map.on("mousemove",function(e){
+
+    document.getElementById("coords-display")
     .innerHTML =
     `Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}`;
 
@@ -627,8 +559,11 @@ let pointLayer = null;
 let highlightLayer = null;
 let activeUser = null;
 
-const githubUser = window.location.hostname.split('.')[0];
-const repoName = window.location.pathname.split('/')[1];
+const githubUser =
+window.location.hostname.split('.')[0];
+
+const repoName =
+window.location.pathname.split('/')[1];
 
 const baseURL =
 window.location.origin + "/" + repoName + "/";
@@ -671,6 +606,7 @@ function login(){
         .innerHTML = "Invalid Login";
 
     }
+
 }
 
 /* LOAD TALUKAS */
@@ -686,7 +622,8 @@ async function loadTalukas(){
 
         const data = await res.json();
 
-        const talukas = data.filter(i=>i.type==="dir");
+        const talukas =
+        data.filter(item => item.type === "dir");
 
         const select =
         document.getElementById("talukaSelect");
@@ -696,12 +633,13 @@ async function loadTalukas(){
 
         talukas.forEach(item=>{
 
-            const opt = document.createElement("option");
+            const option =
+            document.createElement("option");
 
-            opt.value = item.name;
-            opt.textContent = item.name;
+            option.value = item.name;
+            option.textContent = item.name;
 
-            select.appendChild(opt);
+            select.appendChild(option);
 
         });
 
@@ -713,9 +651,10 @@ async function loadTalukas(){
 
         console.error(err);
 
-        setStatus("❌ Taluka Loading Failed");
+        setStatus("❌ Taluka Load Failed");
 
     }
+
 }
 
 /* LOAD VILLAGES */
@@ -728,8 +667,6 @@ document.getElementById("talukaSelect")
 
     try{
 
-        setStatus("Loading Villages...");
-
         const res = await fetch(
             `https://api.github.com/repos/${githubUser}/${repoName}/contents/${taluka}`
         );
@@ -737,7 +674,7 @@ document.getElementById("talukaSelect")
         const data = await res.json();
 
         const villages =
-        data.filter(i=>i.type==="dir");
+        data.filter(item => item.type === "dir");
 
         const select =
         document.getElementById("villageSelect");
@@ -747,12 +684,13 @@ document.getElementById("talukaSelect")
 
         villages.forEach(v=>{
 
-            const opt = document.createElement("option");
+            const option =
+            document.createElement("option");
 
-            opt.value = v.name;
-            opt.textContent = v.name;
+            option.value = v.name;
+            option.textContent = v.name;
 
-            select.appendChild(opt);
+            select.appendChild(option);
 
         });
 
@@ -799,15 +737,18 @@ document.getElementById("villageSelect")
 
         files.forEach(file=>{
 
-            const name = file.name.toLowerCase();
+            const name =
+            file.name.toLowerCase();
 
-            if(name.includes("polygon") || name.includes("poly"))
+            if(name.includes("polygon") ||
+               name.includes("poly"))
                 polygonFile = file.name;
 
             else if(name.includes("line"))
                 lineFile = file.name;
 
-            else if(name.includes("point") || name.includes("text"))
+            else if(name.includes("point") ||
+                    name.includes("text"))
                 pointFile = file.name;
 
         });
@@ -817,10 +758,13 @@ document.getElementById("villageSelect")
 
             const polygonData =
             await (
-                await fetch(`${baseURL}${taluka}/${village}/${polygonFile}`)
+                await fetch(
+                    `${baseURL}${taluka}/${village}/${polygonFile}`
+                )
             ).json();
 
-            polygonLayer = L.geoJSON(polygonData,{
+            polygonLayer =
+            L.geoJSON(polygonData,{
 
                 renderer:L.canvas(),
 
@@ -842,8 +786,7 @@ document.getElementById("villageSelect")
                         props.Gat_No ||
                         props.sr_no ||
                         props.SR_NO ||
-                        props.Text ||
-                        props.text;
+                        props.Text;
 
                     if(survey){
 
@@ -869,6 +812,7 @@ document.getElementById("villageSelect")
                     maxZoom:20
                 }
             );
+
         }
 
         /* LINE */
@@ -876,10 +820,13 @@ document.getElementById("villageSelect")
 
             const lineData =
             await (
-                await fetch(`${baseURL}${taluka}/${village}/${lineFile}`)
+                await fetch(
+                    `${baseURL}${taluka}/${village}/${lineFile}`
+                )
             ).json();
 
-            lineLayer = L.geoJSON(lineData,{
+            lineLayer =
+            L.geoJSON(lineData,{
 
                 renderer:L.canvas(),
 
@@ -906,6 +853,7 @@ document.getElementById("villageSelect")
                         color:"#00ffff",
                         weight:1.5
                     };
+
                 }
 
             }).addTo(map);
@@ -917,10 +865,13 @@ document.getElementById("villageSelect")
 
             const pointData =
             await (
-                await fetch(`${baseURL}${taluka}/${village}/${pointFile}`)
+                await fetch(
+                    `${baseURL}${taluka}/${village}/${pointFile}`
+                )
             ).json();
 
-            pointLayer = L.geoJSON(pointData,{
+            pointLayer =
+            L.geoJSON(pointData,{
 
                 renderer:L.canvas(),
 
@@ -1032,50 +983,6 @@ function searchSurvey(){
 
 }
 
-/* OPACITY */
-document.getElementById("op-polygon")
-.addEventListener("input",e=>{
-
-    if(polygonLayer){
-
-        const v = parseFloat(e.target.value);
-
-        polygonLayer.setStyle({
-            opacity:v,
-            fillOpacity:v*0.02
-        });
-
-    }
-
-});
-
-document.getElementById("op-line")
-.addEventListener("input",e=>{
-
-    if(lineLayer){
-
-        lineLayer.setStyle({
-            opacity:parseFloat(e.target.value)
-        });
-
-    }
-
-});
-
-document.getElementById("op-point")
-.addEventListener("input",e=>{
-
-    if(pointLayer){
-
-        pointLayer.setStyle({
-            opacity:parseFloat(e.target.value),
-            fillOpacity:parseFloat(e.target.value)
-        });
-
-    }
-
-});
-
 /* DOWNLOAD MENU */
 function toggleDownloadMenu(){
 
@@ -1100,35 +1007,63 @@ function downloadDXF(){
 
     if(!polygonLayer){
 
-        alert("No data loaded");
+        alert("No polygon loaded");
 
         return;
     }
 
-    const dxf = new DxfWriter();
+    let dxf = `
+0
+SECTION
+2
+ENTITIES
+`;
 
     polygonLayer.eachLayer(layer=>{
 
-        const geom = layer.feature.geometry;
+        const geom =
+        layer.feature.geometry;
 
         if(geom.type === "Polygon"){
 
-            exportPolygonToDXF(
-                geom.coordinates,
-                dxf
-            );
+            geom.coordinates.forEach(ring=>{
+
+                dxf += buildDXFPolyline(ring);
+
+            });
+
+        }
+
+        else if(geom.type === "MultiPolygon"){
+
+            geom.coordinates.forEach(poly=>{
+
+                poly.forEach(ring=>{
+
+                    dxf += buildDXFPolyline(ring);
+
+                });
+
+            });
 
         }
 
     });
 
-    const blob = new Blob(
-        [dxf.stringify()],
-        {type:'application/dxf'}
-    );
+    dxf += `
+0
+ENDSEC
+0
+EOF
+`;
+
+    const blob =
+    new Blob([dxf],{
+        type:'application/dxf'
+    });
 
     const link =
-    document.createElement('a');
+    document.createElement("a");
 
     link.href =
     URL.createObjectURL(blob);
@@ -1140,31 +1075,50 @@ function downloadDXF(){
 
 }
 
-/* DXF HELPER */
-function exportPolygonToDXF(coordsArray,dxf){
+/* BUILD DXF */
+function buildDXFPolyline(ring){
 
-    coordsArray.forEach(ring=>{
+    let output = `
+0
+POLYLINE
+8
+0
+66
+1
+70
+1
+`;
 
-        const projected = ring.map(c=>{
+    ring.forEach(coord=>{
 
-            const p =
-            proj4(
-                "EPSG:4326",
-                "EPSG:32643",
-                c
-            );
+        const p =
+        proj4(
+            "EPSG:4326",
+            "EPSG:32643",
+            [coord[0],coord[1]]
+        );
 
-            return {
-                x:p[0],
-                y:p[1]
-            };
-
-        });
-
-        dxf.addPolyline(projected,true);
+        output += `
+0
+VERTEX
+8
+0
+10
+${p[0]}
+20
+${p[1]}
+30
+0
+`;
 
     });
 
+    output += `
+0
+SEQEND
+`;
+
+    return output;
 }
 
 /* KML */
@@ -1172,46 +1126,45 @@ function downloadKML(){
 
     if(!polygonLayer){
 
-        alert("No data loaded");
+        alert("No polygon loaded");
 
         return;
     }
 
-    let kml =
-`<?xml version="1.0" encoding="UTF-8"?>
+    let kml = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>`;
+<Document>
+`;
 
     polygonLayer.eachLayer(layer=>{
 
-        const coords =
-        layer.feature.geometry.coordinates[0];
+        const geom =
+        layer.feature.geometry;
 
-        kml += `
-<Placemark>
-<Polygon>
-<outerBoundaryIs>
-<LinearRing>
-<coordinates>`;
+        if(geom.type === "Polygon"){
 
-        coords.forEach(c=>{
+            kml += buildKMLPolygon(
+                geom.coordinates
+            );
 
-            kml += `${c[0]},${c[1]},0 `;
+        }
 
-        });
+        else if(geom.type === "MultiPolygon"){
 
-        kml += `
-</coordinates>
-</LinearRing>
-</outerBoundaryIs>
-</Polygon>
-</Placemark>`;
+            geom.coordinates.forEach(poly=>{
+
+                kml += buildKMLPolygon(poly);
+
+            });
+
+        }
 
     });
 
     kml += `
 </Document>
-</kml>`;
+</kml>
+`;
 
     const blob =
     new Blob(
@@ -1222,7 +1175,7 @@ function downloadKML(){
     );
 
     const link =
-    document.createElement('a');
+    document.createElement("a");
 
     link.href =
     URL.createObjectURL(blob);
@@ -1233,6 +1186,46 @@ function downloadKML(){
     link.click();
 
 }
+
+/* BUILD KML */
+function buildKMLPolygon(coordsArray){
+
+    const ring = coordsArray[0];
+
+    let output = `
+<Placemark>
+<Polygon>
+<tessellate>1</tessellate>
+<outerBoundaryIs>
+<LinearRing>
+<coordinates>
+`;
+
+    ring.forEach(coord=>{
+
+        output += `
+${coord[0]},${coord[1]},0
+`;
+
+    });
+
+    const first = ring[0];
+
+    output += `
+${first[0]},${first[1]},0
+`;
+
+    output += `
+</coordinates>
+</LinearRing>
+</outerBoundaryIs>
+</Polygon>
+</Placemark>
+`;
+
+    return output;
+}
+
 </script>
 
 </body>
