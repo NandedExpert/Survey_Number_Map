@@ -119,10 +119,18 @@ body{
     margin-left:-340px;
 }
 
-#sidebar h2{
-    text-align:center;
-    margin-bottom:20px;
-    color:#38bdf8;
+/* Update the existing sidebar h2 rule */
+#sidebar h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 50px; /* <--- ADD THIS to push text below hamburger */
+    color: #38bdf8;
+}
+
+/* ADD THIS anywhere in your CSS to push zoom controls down */
+.leaflet-top.leaflet-left {
+    margin-top: 60px; 
+    margin-left: 10px;
 }
 /* SIDEBAR TOGGLE */
 
@@ -525,17 +533,17 @@ input{
 
 <script>
 /* SIDEBAR TOGGLE */
+const sidebar = document.getElementById("sidebar");
+const sidebarToggle = document.getElementById("sidebarToggle");
 
-const sidebar =
-document.getElementById("sidebar");
-
-const sidebarToggle =
-document.getElementById("sidebarToggle");
-
-sidebarToggle.addEventListener("click",()=>{
-
+sidebarToggle.addEventListener("click", () => {
     sidebar.classList.toggle("collapsed");
 
+/* ADD THIS: Tells Leaflet to recalculate map size after sidebar transition */
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 300); /* 300ms matches the 0.3s transition in your CSS */
+});
 });
 /* USERS */
 const users = {
