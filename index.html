@@ -762,6 +762,10 @@ maxZoom:20
    LINE
 ================================================= */
 
+/* =================================================
+   LINE
+================================================= */
+
 if(lineFile){
 
 const lineURL =
@@ -772,17 +776,179 @@ fetch(lineURL)
 .then(r=>r.json())
 .then(data=>{
 
+/* ============================================
+   STYLE FUNCTION
+============================================ */
+
+function getLineStyle(feature){
+
+const props =
+feature.properties || {};
+
+/* GET sourcel FIELD */
+
+const source =
+(
+props.sourcel ||
+props.SourceL ||
+props.SOURCEL ||
+""
+)
+.toString()
+.trim();
+
+/* ============================================
+   WATER FEATURES
+============================================ */
+
+if(
+source === "Line_Nala_line" ||
+source === "Line_River_line" ||
+source === "Sym_Kalwa_line"
+){
+
+return{
+color:"blue",
+weight:2,
+opacity:1
+};
+
+}
+
+/* ============================================
+   VAHIVAT
+============================================ */
+
+else if(
+source === "Line_Vahivat_line"
+){
+
+return{
+color:"green",
+weight:2,
+dashArray:"5,5",
+opacity:1
+};
+
+}
+
+/* ============================================
+   ROAD
+============================================ */
+
+else if(
+source === "Line_Road_line"
+){
+
+return{
+color:"#4b4b4b",
+weight:4,
+opacity:1
+};
+
+}
+
+/* ============================================
+   RAILWAY
+============================================ */
+
+else if(
+source === "Line_Railway_line"
+){
+
+return{
+color:"black",
+weight:3,
+dashArray:"12,6",
+opacity:1
+};
+
+}
+
+/* ============================================
+   CONTOUR / ROAD DURUSTI
+============================================ */
+
+else if(
+source === "Line_Contour_line" ||
+source === "Line_Road_Durusti_line"
+){
+
+return{
+color:"red",
+weight:2,
+opacity:1
+};
+
+}
+
+/* ============================================
+   DEFAULT
+============================================ */
+
+else{
+
+return{
+color:"#00ffff",
+weight:1.5,
+opacity:1
+};
+
+}
+
+}
+
+/* ============================================
+   LOAD LINE LAYER
+============================================ */
+
 lineLayer =
 L.geoJSON(data,{
 
 renderer:L.canvas(),
 
-style:{
-color:"#00ffff",
-weight:1.5
+style:getLineStyle,
+
+onEachFeature:(feature,layer)=>{
+
+const props =
+feature.properties || {};
+
+/* POPUP */
+
+let html =
+"<table border='1' style='border-collapse:collapse;font-size:12px;'>";
+
+for(let key in props){
+
+html +=
+`<tr>
+<td><b>${key}</b></td>
+<td>${props[key]}</td>
+</tr>`;
+
+}
+
+html += "</table>";
+
+layer.bindPopup(html);
+
 }
 
 }).addTo(map);
+
+setStatus(
+"✅ Line Layer Loaded"
+);
+
+})
+.catch(err=>{
+
+console.error(err);
+
+setStatus(
+"❌ Line Layer Failed"
+);
 
 });
 
