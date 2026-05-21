@@ -1,0 +1,11 @@
+{
+"type": "FeatureCollection",
+"name": "544754_Balirampur_Lines",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "sourcel": "Line_Vahivat_line", "Taluka": "Nanded", "LGD_Code": "544754", "MAP_ID": "485410054475409000001", "Vill_Name": "Balirampur", "File_name": "544754_Balirampur" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.333978319612001, 19.11693256935283 ], [ 77.334936147535515, 19.116865525104473 ], [ 77.334744299347676, 19.115142894578298 ], [ 77.334744299347676, 19.115142894578298 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Vahivat_line", "Taluka": "Nanded", "LGD_Code": "544754", "MAP_ID": "485410054475409000001", "Vill_Name": "Balirampur", "File_name": "544754_Balirampur" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.335819662187134, 19.118785346825472 ], [ 77.335546834434822, 19.114986717498123 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Vahivat_line", "Taluka": "Nanded", "LGD_Code": "544754", "MAP_ID": "485410054475409000001", "Vill_Name": "Balirampur", "File_name": "544754_Balirampur" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.327387115726083, 19.113641192761417 ], [ 77.327496975212213, 19.114176599817537 ], [ 77.327629345692756, 19.115095817585754 ], [ 77.327680918805811, 19.11563910783936 ], [ 77.327649268078716, 19.116226580871029 ], [ 77.327733884619704, 19.117187911249385 ], [ 77.327758185594519, 19.118096836320582 ], [ 77.32777554662286, 19.118618594069922 ], [ 77.327720961436455, 19.119068977266185 ], [ 77.327742132226689, 19.11989526459001 ], [ 77.327707009574951, 19.120312760294272 ], [ 77.32748234068832, 19.121153588603484 ], [ 77.327416783538808, 19.12157320360679 ], [ 77.327408185181085, 19.121967304326141 ], [ 77.327362450469053, 19.122394150267837 ], [ 77.327374148426529, 19.123208557088546 ], [ 77.327395055388365, 19.123711467759502 ] ] ] } },
+{ "type": "Feature", "properties": { "sourcel": "Line_Vahivat_line", "Taluka": "Nanded", "LGD_Code": "544754", "MAP_ID": "485410054475409000001", "Vill_Name": "Balirampur", "File_name": "544754_Balirampur" }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ 77.327834471624314, 19.11504019712342 ], [ 77.331054250280687, 19.118754281405398 ] ] ] } }
+]
+}
